@@ -38,8 +38,7 @@ while (true) {
             echo "[" . date('Y-m-d H:i:s') . "] === NEW CYCLE ===\n";
             echo "[" . date('Y-m-d H:i:s') . "] 1. Updating DuckDNS...\n";
             @file_get_contents("https://www.duckdns.org/update?domains=altimaster.duckdns.org&token=c3763a1c-bc5e-422e-9556-6b75352c6220&ip=");
-            
-            echo "[" . date('Y-m-d H:i:s') . "] 2. Launching background token search...\n";
+            echo "[" . date('Y-m-d H:i:s') . "] 1. Launching background token search...\n";
             $busquedaEnProgreso = true;
             
             $phpCmd = 'C:\xampp\php\php.exe';
@@ -290,8 +289,8 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
         
         $reqEntrada = getEntryRequirement($pdo, $token['nombre']);
         if ($cambio >= $reqEntrada) {
-            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ? WHERE id = ?")
-                ->execute([$precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
+            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_entrada = ?, precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ? WHERE id = ?")
+                ->execute([$precioActual, $precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
             
             actualizarTokenFree($pdo, $token['id']);
             
@@ -606,8 +605,8 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
         // Verificar requisito de entrada según tags
         $reqEntrada = getEntryRequirement($pdo, $token['nombre']);
         if ($cambio >= $reqEntrada) {
-            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ? WHERE id = ?")
-                ->execute([$precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
+            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_entrada = ?, precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ? WHERE id = ?")
+                ->execute([$precioActual, $precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
             
             actualizarTokenFree($pdo, $token['id']);
             

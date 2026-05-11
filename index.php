@@ -251,6 +251,15 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             color: var(--text-muted);
         }
 
+        .app-footer {
+            text-align: center;
+            padding: 16px 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(79, 70, 229, 0.1);
+            margin-top: 24px;
+        }
+
         .hidden { display: none !important; }
 
         /* Dashboard */
@@ -1472,6 +1481,10 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             </form>
         </div>
     </div>
+
+    <footer class="app-footer">
+        v1.0.01 &copy; 2026 AltiMaster
+    </footer>
 
     <script>
         console.log('AltChecks: Script loaded');

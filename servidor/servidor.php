@@ -36,8 +36,6 @@ while (true) {
 
         if (!$busquedaEnProgreso && ($revisionCiclos === 0 || $revisionCiclos >= $ciclosParaBuscar)) {
             echo "[" . date('Y-m-d H:i:s') . "] === NEW CYCLE ===\n";
-            echo "[" . date('Y-m-d H:i:s') . "] 1. Updating DuckDNS...\n";
-            @file_get_contents("https://www.duckdns.org/update?domains=altimaster.duckdns.org&token=c3763a1c-bc5e-422e-9556-6b75352c6220&ip=");
             echo "[" . date('Y-m-d H:i:s') . "] 1. Launching background token search...\n";
             $busquedaEnProgreso = true;
             

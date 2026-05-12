@@ -58,7 +58,7 @@ if ($method === 'GET') {
                 $stmt = $pdo->query("SELECT * FROM tokens WHERE estado = 'monitoreando' ORDER BY creado_en DESC LIMIT 100");
                 $tokens = $stmt->fetchAll();
                 
-                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 50");
+                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 500");
                 $historial = $historialStmt->fetchAll();
                 
                 echo json_encode([
@@ -91,7 +91,7 @@ if ($method === 'GET') {
                 $stmt->execute();
                 $tokens = $stmt->fetchAll();
                 
-                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 50");
+                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 500");
                 $historial = $historialStmt->fetchAll();
                 
                 echo json_encode([
@@ -144,7 +144,7 @@ if ($method === 'GET') {
             $stmt = $pdo->query("
                 SELECT * FROM historial_tokens
                 ORDER BY fecha_salida DESC
-                LIMIT 50
+                LIMIT 500
             ");
             echo json_encode([
                 'success' => true,
@@ -223,11 +223,73 @@ if ($method === 'GET') {
             ]);
             break;
 
+        case 'token_info':
+            $chainId = $_GET['chain_id'] ?? '';
+            $tokenAddress = $_GET['token_address'] ?? '';
+            if (!$chainId || !$tokenAddress) {
+                echo json_encode(['success' => false, 'error' => 'Faltan parámetros']);
+                break;
+            }
+
+            $pairData = obtenerDatosToken($chainId, $tokenAddress);
+            $pair = $pairData[0] ?? null;
+
+            $cacheFile = __DIR__ . '/../servidor/profiles_cache.json';
+            $profiles = [];
+            if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
+                $profiles = json_decode(file_get_contents($cacheFile), true) ?: [];
+            } else {
+                $resp = @file_get_contents('https://api.dexscreener.com/token-profiles/latest/v1');
+                if ($resp) {
+                    $profiles = json_decode($resp, true) ?: [];
+                    file_put_contents($cacheFile, json_encode($profiles));
+                }
+            }
+
+            $profile = null;
+            foreach ($profiles as $p) {
+                if (($p['tokenAddress'] ?? '') === $tokenAddress) {
+                    $profile = $p;
+                    break;
+                }
+            }
+
+            $links = [];
+            if ($profile && isset($profile['links'])) {
+                $links = $profile['links'];
+            } elseif ($pair && isset($pair['info'])) {
+                if (isset($pair['info']['socials'])) {
+                    foreach ($pair['info']['socials'] as $s) {
+                        $links[] = ['type' => $s['type'] ?? '', 'url' => $s['url'] ?? ''];
+                    }
+                }
+                if (isset($pair['info']['websites'])) {
+                    foreach ($pair['info']['websites'] as $w) {
+                        $links[] = ['label' => 'Website', 'url' => $w['url'] ?? ''];
+                    }
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'profile' => $profile,
+                'pair' => $pair,
+                'links' => $links
+            ]);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Acción no válida']);
     }
     exit;
+}
+
+function obtenerDatosToken($chainId, $tokenAddress) {
+    $url = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddress";
+    $response = @file_get_contents($url);
+    if (!$response) return null;
+    return json_decode($response, true);
 }
 
 http_response_code(405);

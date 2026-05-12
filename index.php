@@ -786,6 +786,25 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             background: rgba(79, 70, 229, 0.08);
         }
 
+        .hist-date-header td {
+            cursor: pointer;
+            background: rgba(79, 70, 229, 0.06);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .hist-date-header:hover td {
+            background: rgba(79, 70, 229, 0.12);
+        }
+
+        .hist-date-header .hist-toggle {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
         .profit-positive {
             color: #22c55e;
             background: rgba(34, 197, 94, 0.12);
@@ -935,6 +954,63 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .detail-value {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .token-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .token-info-modal {
+            text-align: left;
+        }
+
+        .info-section {
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-section-title {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--accent-primary);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 0;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+        }
+
+        .info-value {
             color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
@@ -1895,7 +1971,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <div class="label">Today's Earnings</div>
                         </div>
                         <div class="stat-card">
-                            <div class="value">${data.historial?.length || 0}</div>
+                            <div class="value">${tradesHoy || 0}</div>
                             <div class="label">In History</div>
                         </div>
                     </div>
@@ -1913,7 +1989,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 .then(r => r.json())
                 .then(ed => {
                     if (!ed.success || !ed.earnings || ed.earnings.length === 0) return;
-                    let dailyHtml = '<div class="section" style="margin-top:24px;"><h3 class="section-title">Daily Earnings</h3><div class="daily-earnings">';
+                    let dailyHtml = '<div style="margin-top:24px;"><h3 style="font-size:20px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:12px;">Daily Earnings</h3><div class="daily-earnings">';
                     ed.earnings.forEach(e => {
                         if (e.entry_date === hoyDate) return;
                         const val = parseFloat(e.total_earnings);
@@ -1946,29 +2022,73 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 const historialTable = document.getElementById('historialTable');
                 console.log('AltChecks: historialTable element:', !!historialTable);
                 if (data.historial && data.historial.length > 0) {
-                    historialTable.innerHTML = data.historial.map(h => `
-                        <tr>
-                            <td data-label="Token">
-                                <div style="font-weight:600;">${h.nombre || h.simbolo || '?'}</div>
-                                ${h.tag ? `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">${h.tag}</div>` : ''}
+                    const groups = {};
+                    data.historial.forEach(h => {
+                        if (!h.fecha_salida) return;
+                        const d = new Date(h.fecha_salida);
+                        const dCol = new Date(d.getTime() + colombiaOffset * 60 * 1000);
+                        const key = dCol.getFullYear() + '-' + String(dCol.getMonth() + 1).padStart(2, '0') + '-' + String(dCol.getDate()).padStart(2, '0');
+                        if (!groups[key]) groups[key] = [];
+                        groups[key].push(h);
+                    });
+
+                    const sortedKeys = Object.keys(groups).sort().reverse();
+                    let html = '';
+                    sortedKeys.forEach(key => {
+                        const trades = groups[key];
+                        const totalProfit = trades.reduce((s, t) => s + parseFloat(t.profit_porcentaje || 0), 0);
+                        const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
+                        const profitLabel = totalProfit >= 0 ? '+' : '';
+                        const isToday = key === hoyDate;
+                        const dateParts = key.split('-');
+                        const fmt = dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0];
+
+                        const groupClass = 'hist-group-' + key.replace(/-/g, '');
+                        html += `<tr class="hist-date-header" data-group="${groupClass}" onclick="toggleHistGroup(this)">
+                            <td colspan="9">
+                                <span class="hist-toggle">${isToday ? '▼' : '▶'}</span>
+                                <span style="margin-left:6px;">${fmt}</span>
+                                <span class="${profitClass}" style="margin-left:10px;font-weight:700;font-size:13px;">${profitLabel}${totalProfit.toFixed(2)}%</span>
+                                <span style="color:var(--text-muted);font-size:12px;margin-left:8px;">(${trades.length} trade${trades.length > 1 ? 's' : ''})</span>
                             </td>
-                            <td data-label="Chain">${getChainBadge(h.chain_id)}</td>
-                            <td data-label="Entry">$${formatPrice(h.precio_entrada)}</td>
-                            <td data-label="Exit">$${formatPrice(h.precio_salida)}</td>
-                            <td data-label="Profit" class="${h.profit_porcentaje >= 0 ? 'profit-positive' : 'profit-negative'}">${h.profit_porcentaje}%</td>
-                            <td data-label="Duration">${h.duracion_minutos} min</td>
-                            <td data-label="Reason">${getRazonSalida(h.razon_salida)}</td>
-                            <td data-label="Address" style="font-size:0.75rem;">
-                                <span title="${h.token_address}">${h.token_address ? h.token_address.substring(0, 6) + '...' + h.token_address.substring(h.token_address.length - 4) : '-'}</span>
-                                ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}')">Copiar</button>` : ''}
-                            </td>
-                            ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="showTokenDetail(${h.id})" class="btn-edit" style="margin-right:4px;">Details</button><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
-                        </tr>
-                    `).join('');
+                        </tr>`;
+
+                        trades.forEach(h => {
+                            const style = isToday ? '' : ' style="display:none;"';
+                            html += `<tr class="${groupClass}"${style}>
+                                <td data-label="Token">
+                                    <div style="font-weight:600;">${h.nombre || h.simbolo || '?'}</div>
+                                    ${h.tag ? `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">${h.tag}</div>` : ''}
+                                </td>
+                                <td data-label="Chain">${getChainBadge(h.chain_id)}</td>
+                                <td data-label="Entry">$${formatPrice(h.precio_entrada)}</td>
+                                <td data-label="Exit">$${formatPrice(h.precio_salida)}</td>
+                                <td data-label="Profit" class="${h.profit_porcentaje >= 0 ? 'profit-positive' : 'profit-negative'}">${h.profit_porcentaje}%</td>
+                                <td data-label="Duration">${h.duracion_minutos} min</td>
+                                <td data-label="Reason">${getRazonSalida(h.razon_salida)}</td>
+                                <td data-label="Address" style="font-size:0.75rem;">
+                                    <span title="${h.token_address}">${h.token_address ? h.token_address.substring(0, 6) + '...' + h.token_address.substring(h.token_address.length - 4) : '-'}</span>
+                                    ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}')">Copiar</button>` : ''}
+                                </td>
+                                ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="showTokenDetail(${h.id})" class="btn-edit" style="margin-right:4px;">Details</button><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
+                            </tr>`;
+                        });
+                    });
+                    historialTable.innerHTML = html;
                 } else {
                     historialTable.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No history</td></tr>';
                 }
                 console.log('AltChecks: Historial rendered');
+
+                window.toggleHistGroup = function(headerRow) {
+                    const className = headerRow.getAttribute('data-group');
+                    if (!className) return;
+                    const rows = document.querySelectorAll('.' + className);
+                    const isHidden = rows.length > 0 && rows[0].style.display === 'none';
+                    rows.forEach(r => r.style.display = isHidden ? '' : 'none');
+                    const toggle = headerRow.querySelector('.hist-toggle');
+                    if (toggle) toggle.textContent = isHidden ? '▼' : '▶';
+                };
 
                 console.log('AltChecks: renderVipUser COMPLETE');
             } catch (e) {
@@ -1976,43 +2096,122 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             }
         }
 
+        function showTokenInfo(chainId, tokenAddress, tokenId) {
+            fetch('api/tokens.php?action=token_info&chain_id=' + encodeURIComponent(chainId) + '&token_address=' + encodeURIComponent(tokenAddress), {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+                    return;
+                }
+
+                const p = data.pair;
+                const profile = data.profile;
+                const iconUrl = profile?.icon || '';
+                const dexUrl = profile?.url || (p ? 'https://dexscreener.com/' + chainId + '/' + tokenAddress : '#');
+                const description = profile?.description || '';
+                const links = data.links || [];
+
+                const twitter = links.find(l => l.type === 'twitter');
+                const website = links.find(l => l.label === 'Website' || l.type === 'website');
+                const telegram = links.find(l => l.type === 'telegram');
+
+                const price = p ? parseFloat(p.priceUsd || 0) : 0;
+                const mc = p ? (p.marketCap || 0) : 0;
+                const liq = p ? (p.liquidity?.usd || 0) : 0;
+                const change1h = p ? (p.priceChange?.h1 || 0) : 0;
+                const change6h = p ? (p.priceChange?.h6 || 0) : 0;
+                const change24h = p ? (p.priceChange?.h24 || 0) : 0;
+                const pairCreated = p?.pairCreatedAt || null;
+
+                Swal.fire({
+                    title: (profile?.description ? profile.description.substring(0, 60) + (profile.description.length > 60 ? '...' : '') : ''),
+                    html: `
+                        <div class="token-info-modal">
+                            <div style="text-align:center;margin-bottom:16px;">
+                                ${iconUrl ? `<img src="${iconUrl}" style="width:64px;height:64px;border-radius:50%;border:2px solid var(--accent-primary);margin-bottom:8px;" onerror="this.style.display='none'">` : ''}
+                                <div style="font-size:20px;font-weight:700;color:var(--text-primary);">${p?.baseToken?.name || 'Token'}</div>
+                                <div style="font-size:13px;color:var(--text-muted);">${p?.baseToken?.symbol || ''} <span class="chain-badge ${getChainClass(chainId)}">${chainId}</span></div>
+                                <div style="font-size:24px;font-weight:700;margin-top:8px;color:var(--text-primary);">$${formatPrice(price)}</div>
+                            </div>
+
+                            ${description ? `<div class="info-section"><div class="info-section-title">Description</div><div style="font-size:13px;color:var(--text-muted);line-height:1.5;">${description}</div></div>` : ''}
+
+                            <div class="info-section">
+                                <div class="info-section-title">Prices</div>
+                                <div class="info-row"><span class="info-label">Current</span><span class="info-value">$${formatPrice(price)}</span></div>
+                                <div class="info-row"><span class="info-label">Change 1h</span><span class="info-value ${change1h >= 0 ? 'profit-positive' : 'profit-negative'}">${change1h >= 0 ? '+' : ''}${change1h}%</span></div>
+                                <div class="info-row"><span class="info-label">Change 6h</span><span class="info-value ${change6h >= 0 ? 'profit-positive' : 'profit-negative'}">${change6h >= 0 ? '+' : ''}${change6h}%</span></div>
+                                <div class="info-row"><span class="info-label">Change 24h</span><span class="info-value ${change24h >= 0 ? 'profit-positive' : 'profit-negative'}">${change24h >= 0 ? '+' : ''}${change24h}%</span></div>
+                                <div class="info-row"><span class="info-label">Market Cap</span><span class="info-value">$${formatNumber(mc)}</span></div>
+                                <div class="info-row"><span class="info-label">Liquidity</span><span class="info-value">$${formatNumber(liq)}</span></div>
+                            </div>
+
+                            <div class="info-section">
+                                <div class="info-section-title">Timing</div>
+                                <div class="info-row"><span class="info-label">Pair Created</span><span class="info-value">${pairCreated ? formatDate(pairCreated) : 'N/A'}</span></div>
+                            </div>
+
+                            ${links.length > 0 ? `<div class="info-section"><div class="info-section-title">Links</div>${links.map(l => {
+                                const label = l.type === 'twitter' ? 'X / Twitter' : l.label || l.type || 'Link';
+                                const icon = l.type === 'twitter' ? '\u{1F426}' : l.type === 'telegram' ? '\u{1F4E8}' : '\u{1F517}';
+                                return `<div class="info-row"><span class="info-label">${icon} ${label}</span><span class="info-value"><a href="${l.url}" target="_blank" rel="noopener" style="color:var(--accent-primary);font-size:12px;">${l.url.length > 35 ? l.url.substring(0,35)+'...' : l.url}</a></span></div>`;
+                            }).join('')}</div>` : ''}
+
+                            <div class="info-section">
+                                <div class="info-section-title">Address</div>
+                                <div class="info-row"><span class="info-value" style="font-size:11px;word-break:break-all;">${tokenAddress}</span></div>
+                                <div style="text-align:center;margin-top:6px;"><button class="btn-copy" onclick="copyToClipboard('${tokenAddress}')" style="font-size:12px;">Copy Address</button></div>
+                            </div>
+
+                            <div style="text-align:center;margin-top:12px;">
+                                <a href="${dexUrl}" target="_blank" rel="noopener" style="color:var(--accent-primary);font-size:12px;">View on DexScreener ↗</a>
+                            </div>
+                        </div>
+                    `,
+                    width: 480,
+                    padding: '24px',
+                    background: 'var(--bg-primary)',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: { popup: 'swal-token-info' }
+                });
+
+                // Load icon after modal opens
+                if (iconUrl) {
+                    const img = new Image();
+                    img.onload = () => {
+                        const el = document.getElementById('token-icon-' + tokenId);
+                        if (el) el.innerHTML = '<img src="' + iconUrl + '" style="width:32px;height:32px;border-radius:50%;">';
+                    };
+                    img.src = iconUrl;
+                }
+            })
+            .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+        }
+
         function renderTokenCard(t) {
-            console.log('AltChecks: renderTokenCard called for:', t.nombre || t.simbolo);
             const precioEntrada = parseFloat(t.precio_entrada);
-            const precioMax = parseFloat(t.precio_maximo) || precioEntrada;
             const profit = precioEntrada > 0 ? ((parseFloat(t.precio_actual) - precioEntrada) / precioEntrada * 100) : 0;
             const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
             const profitLabel = profit >= 0 ? '+' : '';
-            
-            const creado = t.primer_check ? new Date(t.primer_check) : null;
-            const minutosActivo = creado ? Math.floor((new Date() - creado) / 60000) : 0;
-            const tiempoLabel = minutosActivo < 60 ? `${minutosActivo}m` : `${Math.floor(minutosActivo/60)}h ${minutosActivo%60}m`;
 
             return `
-                <div class="token-card">
+                <div class="token-card" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;">
                     <div class="token-card-header">
-                        <div>
-                            <div class="token-name">${t.nombre || 'Token'}</div>
-                            <div class="token-symbol">${t.simbolo || ''}</div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="token-icon" id="token-icon-${t.id}">${(t.nombre || '?')[0]}</div>
+                            <div>
+                                <div class="token-name">${t.nombre || 'Token'}</div>
+                                <div class="token-symbol">${t.simbolo || ''}</div>
+                            </div>
                         </div>
                         <span class="chain-badge ${getChainClass(t.chain_id)}">${t.chain_id}</span>
                     </div>
                     <div class="token-price">$${formatPrice(t.precio_actual)} <span class="profit-badge ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
-                    <div class="token-change">
-                        <span>1h: <span class="${t.cambio_1h >= 0 ? 'positive' : 'negative'}">${t.cambio_1h}%</span></span>
-                        <span>6h: <span class="${t.cambio_6h >= 0 ? 'positive' : 'negative'}">${t.cambio_6h}%</span></span>
-                        <span>24h: <span class="${t.cambio_24h >= 0 ? 'positive' : 'negative'}">${t.cambio_24h}%</span></span>
-                    </div>
-                    <div class="token-stats">
-                        <div><i data-lucide="clock" style="width:14px;height:14px;stroke:var(--text-muted);stroke-width:2"></i><span>${tiempoLabel}</span></div>
-                        <div><span>Peak</span><span>$${formatPrice(precioMax)}</span></div>
-                        <div><span>MC</span><span>$${formatNumber(t.market_cap)}</span></div>
-                    </div>
-                    <div class="token-address">
-                        <span>${truncateAddress(t.token_address)}</span>
-                        <button class="btn-copy" onclick="copyToClipboard('${t.token_address}')">Copiar</button>
-                    </div>
-                    <div class="token-status status-${t.estado}"><i data-lucide="${t.estado === 'monitoreando' ? 'activity' : 'sparkles'}" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;margin-right:4px"></i>${t.estado === 'monitoreando' ? 'Monitoreando' : 'Nuevo'}</div>
+                    <div class="token-status status-${t.estado}" style="margin-top:6px;font-size:11px;text-align:center;">${t.estado === 'monitoreando' ? 'Monitoreando' : 'Nuevo'}</div>
                 </div>
             `;
         }

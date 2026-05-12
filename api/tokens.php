@@ -179,6 +179,50 @@ if ($method === 'GET') {
             ]);
             break;
 
+        case 'earnings_by_day':
+            $stmt = $pdo->query("
+                SELECT
+                    DATE(fecha_entrada) as entry_date,
+                    SUM(profit_porcentaje) as total_earnings,
+                    COUNT(*) as total_trades
+                FROM historial_tokens
+                WHERE fecha_entrada IS NOT NULL
+                GROUP BY DATE(fecha_entrada)
+                ORDER BY entry_date DESC
+                LIMIT 30
+            ");
+            echo json_encode([
+                'success' => true,
+                'earnings' => $stmt->fetchAll()
+            ]);
+            break;
+
+        case 'detail':
+            $id = (int)($_GET['id'] ?? 0);
+            if (!$id) {
+                echo json_encode(['success' => false, 'error' => 'Falta ID']);
+                break;
+            }
+            $stmt = $pdo->prepare("SELECT * FROM historial_tokens WHERE id = ?");
+            $stmt->execute([$id]);
+            $historial = $stmt->fetch();
+            if (!$historial) {
+                echo json_encode(['success' => false, 'error' => 'No encontrado']);
+                break;
+            }
+            $tokenExtra = null;
+            $stmtToken = $pdo->prepare("SELECT creado_en, fecha_registro, precio_maximo, primer_check FROM tokens WHERE id = ?");
+            $stmtToken->execute([$historial['id_token_original']]);
+            if ($stmtToken->rowCount() > 0) {
+                $tokenExtra = $stmtToken->fetch();
+            }
+            echo json_encode([
+                'success' => true,
+                'detail' => $historial,
+                'token_extra' => $tokenExtra
+            ]);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Acción no válida']);

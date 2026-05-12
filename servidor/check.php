@@ -85,8 +85,9 @@ function processCheckingTokens($pdo, $tpPorcentaje) {
         $reqEntrada = getEntryRequirement($pdo, $token['nombre']);
         
         if ($cambio >= $reqEntrada) {
-            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ?, precio_maximo = ? WHERE id = ?")
+            $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), precio_entrada = ?, precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ?, precio_maximo = ? WHERE id = ?")
                 ->execute([
+                    $precioActual,
                     $precioActual,
                     $pairData['priceChange']['h1'] ?? 0,
                     $pairData['priceChange']['h6'] ?? 0,
@@ -331,10 +332,10 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
 
     $pdo->prepare("INSERT INTO historial_tokens (
         id_token_original, chain_id, token_address, pair_address,
-        nombre, simbolo, precio_entrada, precio_salida,
+        nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
         profit_porcentaje, duracion_minutos, razon_salida, tag,
         es_reentry, fecha_entrada, fecha_salida
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())")
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())")
     ->execute([
         $tokenId,
         $token['chain_id'],
@@ -343,6 +344,7 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         $token['nombre'],
         $token['simbolo'],
         $token['precio_entrada'],
+        $token['precio_descubrimiento'] ?? $token['precio_entrada'],
         $precioSalida,
         $profit,
         (int)$duracionMinutos,

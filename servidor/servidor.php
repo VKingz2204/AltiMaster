@@ -176,15 +176,15 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             try {
                 $sql = "INSERT INTO tokens (
                     chain_id, token_address, pair_address,
-                    nombre, simbolo, precio_actual, precio_entrada, precio_crash, precio_maximo,
+                    nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_crash, precio_maximo,
                     last_check_price, market_cap, liquidez, cambio_1h, cambio_6h, cambio_24h,
                     estado, meta_tp, tp_alcanzado, sl_alcanzado, es_reentry,
                     reentry_count, checks_count, laps, timeout_count, fecha_registro,
                     primer_check, ultimo_check, creado_en, actualizado_en
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
                 $params = [
                     $token['chain_id'], $token['token_address'], $token['pair_address'],
-                    $token['nombre'], $token['simbolo'], $token['precio'], $token['precio'],
+                    $token['nombre'], $token['simbolo'], $token['precio'], $token['precio'], $token['precio'],
                     $token['precio'], $token['precio'], $token['market_cap'], $token['liquidez'],
                     $token['cambio_1h'], $token['cambio_6h'], $token['cambio_24h'], $token['tp']
                 ];
@@ -942,10 +942,10 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
     $pdo->prepare("
         INSERT INTO historial_tokens (
             id_token_original, chain_id, token_address, pair_address,
-            nombre, simbolo, precio_entrada, precio_salida,
+            nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
             profit_porcentaje, duracion_minutos, razon_salida, tag,
             es_reentry, fecha_entrada, fecha_salida
-        ) VALUES (:id, :chain, :token_addr, :pair_addr, :nombre, :simbolo, :entrada, :salida, :profit, :duracion, :razon, :tag, :es_reentry, :fecha_entrada, :fecha_salida)
+        ) VALUES (:id, :chain, :token_addr, :pair_addr, :nombre, :simbolo, :entrada, :descubrimiento, :salida, :profit, :duracion, :razon, :tag, :es_reentry, :fecha_entrada, :fecha_salida)
     ")->execute([
         ':id' => $tokenId,
         ':chain' => $token['chain_id'],
@@ -954,6 +954,7 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         ':nombre' => $token['nombre'],
         ':simbolo' => $token['simbolo'],
         ':entrada' => $token['precio_entrada'],
+        ':descubrimiento' => $token['precio_descubrimiento'] ?? $token['precio_entrada'],
         ':salida' => $precioSalida,
         ':profit' => $profit,
         ':duracion' => $duracionMinutos,

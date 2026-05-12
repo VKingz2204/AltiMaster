@@ -891,7 +891,89 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             margin-bottom: 32px;
         }
 
-.stat-card {
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .detail-modal {
+            text-align: left;
+        }
+
+        .detail-section {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-section-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 13px;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .daily-earnings {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .daily-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(20, 26, 61, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(79, 70, 229, 0.1);
+        }
+
+        .daily-date {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .daily-value {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .daily-count {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .stat-card {
             background: rgba(20, 26, 61, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(79, 70, 229, 0.15);
@@ -1821,6 +1903,32 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 document.getElementById('overviewContent').innerHTML = statsHtml;
                 console.log('AltChecks: Stats rendered, tokens:', data.tokens?.length);
 
+                // Daily Earnings (previous days)
+                const hoyDate = hoyColombia.getFullYear() + '-' +
+                    (hoyColombia.getMonth() + 1).toString().padStart(2, '0') + '-' +
+                    hoyColombia.getDate().toString().padStart(2, '0');
+                fetch('api/tokens.php?action=earnings_by_day', {
+                    headers: { 'Authorization': currentToken }
+                })
+                .then(r => r.json())
+                .then(ed => {
+                    if (!ed.success || !ed.earnings || ed.earnings.length === 0) return;
+                    let dailyHtml = '<div class="section" style="margin-top:24px;"><h3 class="section-title">Daily Earnings</h3><div class="daily-earnings">';
+                    ed.earnings.forEach(e => {
+                        if (e.entry_date === hoyDate) return;
+                        const val = parseFloat(e.total_earnings);
+                        const cls = val >= 0 ? 'profit-positive' : 'profit-negative';
+                        const label = val >= 0 ? '+' : '';
+                        const date = new Date(e.entry_date + 'T00:00:00');
+                        const fmt = (date.getMonth()+1).toString().padStart(2,'0') + '/' + date.getDate().toString().padStart(2,'0') + '/' + date.getFullYear();
+                        dailyHtml += `<div class="daily-row"><span class="daily-date">${fmt}</span><span class="daily-value ${cls}">${label}${val.toFixed(2)}%</span><span class="daily-count">${e.total_trades} trade${e.total_trades > 1 ? 's' : ''}</span></div>`;
+                    });
+                    dailyHtml += '</div></div>';
+                    if (dailyHtml.includes('daily-row')) {
+                        document.getElementById('overviewContent').insertAdjacentHTML('beforeend', dailyHtml);
+                    }
+                });
+
                 // Tokens Grid
                 document.getElementById('tokensCount').textContent = data.tokens?.length || 0;
                 const grid = document.getElementById('tokensGrid');
@@ -1854,7 +1962,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                                 <span title="${h.token_address}">${h.token_address ? h.token_address.substring(0, 6) + '...' + h.token_address.substring(h.token_address.length - 4) : '-'}</span>
                                 ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}')">Copiar</button>` : ''}
                             </td>
-                            ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
+                            ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="showTokenDetail(${h.id})" class="btn-edit" style="margin-right:4px;">Details</button><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
                         </tr>
                     `).join('');
                 } else {
@@ -1932,8 +2040,90 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             });
         }
 
+        // Show token detail modal (admin only)
+        function showTokenDetail(historialId) {
+            fetch('api/tokens.php?action=detail&id=' + historialId, {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+                    return;
+                }
+                const d = data.detail;
+                const extra = data.token_extra;
+                const profit = parseFloat(d.profit_porcentaje);
+                const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+                const profitLabel = profit >= 0 ? '+' : '';
+
+                Swal.fire({
+                    title: (d.nombre || d.simbolo || 'Token') + ' <span style="font-size:0.7rem;opacity:0.6">' + (d.chain_id || '') + '</span>',
+                    html: `
+                        <div class="detail-modal">
+                            <div class="detail-section">
+                                <div class="detail-section-title">🔍 Discovery</div>
+                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${extra?.creado_en ? formatDate(extra.creado_en) : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">${d.precio_descubrimiento ? '$' + parseFloat(d.precio_descubrimiento).toFixed(8) : 'N/A'}</span></div>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">🚪 Entry</div>
+                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_entrada ? formatDate(d.fecha_entrada) : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_entrada ? parseFloat(d.precio_entrada).toFixed(8) : 'N/A'}</span></div>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">📈 Peak</div>
+                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${extra?.precio_maximo ? parseFloat(extra.precio_maximo).toFixed(8) : 'N/A'}</span></div>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">🏁 Exit</div>
+                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_salida ? formatDate(d.fecha_salida) : 'N/A'}</span></div>
+                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_salida ? parseFloat(d.precio_salida).toFixed(8) : 'N/A'}</span></div>
+                            </div>
+                            <div class="detail-section">
+                                <div class="detail-section-title">📊 Summary</div>
+                                <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
+                                <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
+                                <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
+                                ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}
+                                ${d.es_reentry ? `<div class="detail-row"><span class="detail-label">Re-entry</span><span class="detail-value">Yes (x${d.reentry_count || 1})</span></div>` : ''}
+                            </div>
+                        </div>
+                    `,
+                    width: 480,
+                    padding: '24px',
+                    background: 'var(--bg-primary)',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: { popup: 'swal-detail' }
+                });
+            })
+            .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+        }
+
         // Admin
         function loadAdmin() {
+            // Heartbeat - señal del servidor
+            fetch('api/tokens.php?action=server', {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const s = data.server?.status;
+                let html = '<div class="stat-card"><div class="label">Server Signal</div>';
+                if (s?.ultimo_check) {
+                    const diffMin = Math.floor((new Date() - new Date(s.ultimo_check)) / 60000);
+                    const color = diffMin < 2 ? 'var(--success)' : diffMin < 10 ? 'var(--warning)' : 'var(--error)';
+                    const label = diffMin < 1 ? 'Just now' : diffMin === 1 ? '1 min ago' : diffMin + ' min ago';
+                    html += `<div class="value" style="color:${color}">${label}</div>`;
+                } else {
+                    html += '<div class="value" style="color:var(--error)">No signal</div>';
+                }
+                html += '</div>';
+                html += `<div class="stat-card"><div class="label">Active Tokens</div><div class="value">${s?.tokens_activos || 0}</div></div>`;
+                document.getElementById('adminStats').innerHTML = html;
+            });
+
             // Cargar usuarios
             fetch('api/admin.php?action=usuarios', {
                 headers: { 'Authorization': currentToken }

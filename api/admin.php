@@ -277,11 +277,101 @@ if ($method === 'POST') {
             echo json_encode(['success' => true, 'message' => 'Configuración actualizada']);
             break;
 
+        case 'insertar_token_manual':
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Solo admin']);
+                exit;
+            }
+            $tokenAddress = trim($input['token_address'] ?? '');
+            if (empty($tokenAddress)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Falta token_address']);
+                exit;
+            }
+            $stmt = $pdo->prepare("SELECT id FROM tokens WHERE token_address = ?");
+            $stmt->execute([$tokenAddress]);
+            if ($stmt->fetch()) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Token ya existe en el sistema']);
+                exit;
+            }
+            $stmt = $pdo->prepare("INSERT INTO manual_coins (token_address, estado) VALUES (?, 'pendiente')");
+            $stmt->execute([$tokenAddress]);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Coin agregada a la cola. El servidor la procesará en breve.',
+                'id' => $pdo->lastInsertId()
+            ]);
+            break;
+
+        case 'force_exit':
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Solo admin']);
+                exit;
+            }
+            $tokenId = (int)($input['token_id'] ?? 0);
+            if (!$tokenId) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Falta token_id']);
+                exit;
+            }
+            $stmt = $pdo->prepare("SELECT * FROM tokens WHERE id = ? AND estado = 'monitoreando'");
+            $stmt->execute([$tokenId]);
+            $token = $stmt->fetch();
+            if (!$token) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Token no encontrado o no está en monitoreo']);
+                exit;
+            }
+            $tokenData = obtenerDatosToken($token['chain_id'], $token['token_address']);
+            $precioActual = (float)(($tokenData[0]['priceUsd'] ?? 0) ?: $token['precio_actual']);
+            $precioEntrada = (float)$token['precio_entrada'];
+            $cambio = $precioEntrada > 0 ? round((($precioActual / $precioEntrada) - 1) * 100, 2) : 0;
+            manualExitToken($pdo, $token, $precioActual, $cambio);
+            echo json_encode(['success' => true, 'message' => 'Token exited manually']);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Acción no válida']);
     }
     exit;
+}
+
+function obtenerDatosToken($chainId, $tokenAddress) {
+    $url = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddress";
+    $response = @file_get_contents($url);
+    if (!$response) return null;
+    return json_decode($response, true);
+}
+
+function manualExitToken($pdo, $token, $precioSalida, $profit) {
+    $duracionMinutos = 0;
+    if ($token['fecha_ingreso']) {
+        $stmt = $pdo->query("SELECT TIMESTAMPDIFF(MINUTE, '{$token['fecha_ingreso']}', NOW()) as minutos");
+        $duracionMinutos = (int)($stmt->fetch()['minutos'] ?? 0);
+    }
+    $pdo->prepare("UPDATE tokens SET fecha_salida = NOW(), estado = 'exit', tag = NULL WHERE id = ?")
+        ->execute([$token['id']]);
+    $stmtFecha = $pdo->query("SELECT fecha_salida FROM tokens WHERE id = {$token['id']}");
+    $fechaSalidaDb = $stmtFecha->fetch()['fecha_salida'];
+    $pdo->prepare("
+        INSERT INTO historial_tokens (
+            id_token_original, chain_id, token_address, pair_address,
+            nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
+            profit_porcentaje, duracion_minutos, razon_salida, tag,
+            es_reentry, fecha_entrada, fecha_salida
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ")->execute([
+        $token['id'], $token['chain_id'], $token['token_address'], $token['pair_address'],
+        $token['nombre'], $token['simbolo'], $token['precio_entrada'],
+        $token['precio_descubrimiento'] ?? $token['precio_entrada'], $precioSalida,
+        $profit, $duracionMinutos, 'manual', null,
+        $token['es_reentry'], $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb
+    ]);
+    logSistema('info', 'Token exited manually: ' . $token['nombre'], ['id' => $token['id'], 'profit' => $profit . '%']);
 }
 
 http_response_code(405);

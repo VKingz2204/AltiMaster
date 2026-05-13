@@ -257,6 +257,77 @@ function obtenerDatosToken($chainId, $tokenAddress) {
 }
 
 function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $slPorcentaje, $reentryMin, $crashPorcentaje) {
+    // Process pending manual coins
+    $stmtManual = $pdo->query("SELECT * FROM manual_coins WHERE estado = 'pendiente' LIMIT 5");
+    foreach ($stmtManual->fetchAll() as $manual) {
+        $tokenData = obtenerDatosToken('solana', $manual['token_address']);
+        if (!$tokenData || !isset($tokenData[0])) {
+            $pdo->prepare("UPDATE manual_coins SET estado = 'error', mensaje = ?, procesado_en = NOW() WHERE id = ?")
+                ->execute(['No se encontraron datos en DexScreener', $manual['id']]);
+            echo "[" . date('Y-m-d H:i:s') . "] ❌ Manual coin fetch failed: " . $manual['token_address'] . " (no DexScreener data)\n";
+            continue;
+        }
+        $pair = $tokenData[0];
+        $precioActual = (float)($pair['priceUsd'] ?? 0);
+        if ($precioActual <= 0) {
+            $pdo->prepare("UPDATE manual_coins SET estado = 'error', mensaje = ?, procesado_en = NOW() WHERE id = ?")
+                ->execute(['Precio inválido', $manual['id']]);
+            echo "[" . date('Y-m-d H:i:s') . "] ❌ Manual coin skipped: " . $manual['token_address'] . " (invalid price)\n";
+            continue;
+        }
+
+        $dupe = $pdo->prepare("SELECT id FROM tokens WHERE token_address = ?");
+        $dupe->execute([$manual['token_address']]);
+        if ($dupe->fetch()) {
+            $pdo->prepare("UPDATE manual_coins SET estado = 'error', mensaje = ?, procesado_en = NOW() WHERE id = ?")
+                ->execute(['Token ya existe en el sistema', $manual['id']]);
+            continue;
+        }
+
+        $pairAddress = $pair['pairAddress'] ?? '';
+        $nombre = $pair['baseToken']['name'] ?? 'Manual';
+        $simbolo = $pair['baseToken']['symbol'] ?? '';
+        $marketCap = $pair['marketCap'] ?? 0;
+        $liquidez = $pair['liquidity']['usd'] ?? 0;
+        $change1h = $pair['priceChange']['h1'] ?? 0;
+        $change6h = $pair['priceChange']['h6'] ?? 0;
+        $change24h = $pair['priceChange']['h24'] ?? 0;
+        $tp = getConfig('tp_porcentaje') ?: 24;
+
+        $sql = "INSERT INTO tokens (
+            chain_id, token_address, pair_address,
+            nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_crash, precio_maximo,
+            last_check_price, market_cap, liquidez, cambio_1h, cambio_6h, cambio_24h,
+            estado, meta_tp, tp_alcanzado, sl_alcanzado, es_reentry,
+            reentry_count, checks_count, laps, timeout_count, fecha_registro,
+            primer_check, ultimo_check, creado_en, actualizado_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'monitoreando', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
+        $params = [
+            'solana', $manual['token_address'], $pairAddress,
+            $nombre, $simbolo, $precioActual, $precioActual, $precioActual,
+            $precioActual, $precioActual, $marketCap, $liquidez,
+            $change1h, $change6h, $change24h, $tp
+        ];
+        $pdo->prepare($sql)->execute($params);
+        $tokenId = $pdo->lastInsertId();
+
+        $signalUsers = $pdo->query("SELECT id FROM api_keys")->fetchAll();
+        foreach ($signalUsers as $su) {
+            createSignal($pdo, $su['id'], $manual['token_address'], $precioActual);
+        }
+
+        registrarCoinRevisada(
+            $pdo, $pairAddress, 'solana',
+            $nombre, $precioActual,
+            $marketCap, $liquidez,
+            $change1h, $change6h, $change24h,
+            'manual_entry', 'Token insertado manualmente'
+        );
+
+        $pdo->prepare("UPDATE manual_coins SET estado = 'procesado', procesado_en = NOW() WHERE id = ?")->execute([$manual['id']]);
+        echo "[" . date('Y-m-d H:i:s') . "] ✅ Manual coin entered: " . $nombre . " ($simbolo)\n";
+    }
+
     $stmtNuevos = $pdo->query("SELECT * FROM tokens WHERE estado = 'nuevo'");
     $tokensNuevos = $stmtNuevos->fetchAll();
     

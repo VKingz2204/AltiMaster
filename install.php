@@ -69,14 +69,25 @@ try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN plan ENUM('basic','pro','ultra
 try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"); print_line("    • usuarios: is_admin column added", 'success'); } catch (PDOException $e) { print_line("    • usuarios: is_admin column OK", 'dim'); }
 try { $pdo->exec("ALTER TABLE signals ADD COLUMN user_id INT NOT NULL AFTER id"); print_line("    • signals: user_id column added", 'success'); } catch (PDOException $e) { print_line("    • signals: user_id column OK", 'dim'); }
 try { $pdo->exec("ALTER TABLE signals ADD INDEX idx_signals_user (user_id)"); print_line("    • signals: user_id index added", 'success'); } catch (PDOException $e) { print_line("    • signals: user_id index OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens ADD COLUMN precio_descubrimiento DECIMAL(30,18) DEFAULT 0 AFTER precio_entrada"); print_line("    • tokens: precio_descubrimiento column added", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_descubrimiento column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens ADD COLUMN precio_descubrimiento DECIMAL(30,18) DEFAULT 0 AFTER precio_entrada"); print_line("    • historial_tokens: precio_descubrimiento column added", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_descubrimiento column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_actual DECIMAL(30,18) DEFAULT 0"); print_line("    • tokens: precio_actual precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_actual precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_entrada DECIMAL(30,18) DEFAULT 0"); print_line("    • tokens: precio_entrada precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_entrada precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_descubrimiento DECIMAL(30,18) DEFAULT 0"); print_line("    • tokens: precio_descubrimiento precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_descubrimiento precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_crash DECIMAL(30,18) DEFAULT NULL"); print_line("    • tokens: precio_crash precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_crash precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_maximo DECIMAL(30,18) DEFAULT 0"); print_line("    • tokens: precio_maximo precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_maximo precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens MODIFY precio_15_peak DECIMAL(30,18) DEFAULT 0"); print_line("    • tokens: precio_15_peak precision updated", 'success'); } catch (PDOException $e) { print_line("    • tokens: precio_15_peak precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_entrada DECIMAL(30,18)"); print_line("    • historial_tokens: precio_entrada precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_entrada precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_descubrimiento DECIMAL(30,18) DEFAULT 0"); print_line("    • historial_tokens: precio_descubrimiento precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_descubrimiento precision OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_salida DECIMAL(30,18)"); print_line("    • historial_tokens: precio_salida precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_salida precision OK", 'dim'); }
 
-// Migrate existing users
-$pdo->exec("UPDATE usuarios SET is_admin = 1 WHERE nivel = 'admin' AND (is_admin IS NULL OR is_admin = 0)");
-$pdo->exec("UPDATE usuarios SET plan = 'ultra' WHERE nivel = 'admin' AND (plan IS NULL OR plan = 'basic')");
-$pdo->exec("UPDATE usuarios SET plan = 'basic' WHERE nivel = 'free' AND (plan IS NULL OR plan = 'basic')");
-$pdo->exec("UPDATE usuarios SET plan = 'basic' WHERE nivel = 'vip' AND (nivel_detalle = '1' OR nivel_detalle IS NULL) AND (plan IS NULL OR plan = 'basic')");
-$pdo->exec("UPDATE usuarios SET plan = 'pro' WHERE nivel = 'vip' AND nivel_detalle = '2' AND (plan IS NULL OR plan = 'basic')");
-$pdo->exec("UPDATE usuarios SET plan = 'ultra' WHERE nivel = 'vip' AND nivel_detalle = '3' AND (plan IS NULL OR plan = 'basic')");
+// Migrate existing users (safe if table doesn't exist yet)
+try { $pdo->exec("UPDATE usuarios SET is_admin = 1 WHERE nivel = 'admin' AND (is_admin IS NULL OR is_admin = 0)"); } catch (PDOException $e) {}
+try { $pdo->exec("UPDATE usuarios SET plan = 'ultra' WHERE nivel = 'admin' AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
+try { $pdo->exec("UPDATE usuarios SET plan = 'basic' WHERE nivel = 'free' AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
+try { $pdo->exec("UPDATE usuarios SET plan = 'basic' WHERE nivel = 'vip' AND (nivel_detalle = '1' OR nivel_detalle IS NULL) AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
+try { $pdo->exec("UPDATE usuarios SET plan = 'pro' WHERE nivel = 'vip' AND nivel_detalle = '2' AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
+try { $pdo->exec("UPDATE usuarios SET plan = 'ultra' WHERE nivel = 'vip' AND nivel_detalle = '3' AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
 
 step_end();
 
@@ -98,10 +109,10 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tokens (
     id INT AUTO_INCREMENT PRIMARY KEY, chain_id VARCHAR(20) NOT NULL,
     token_address VARCHAR(100) NOT NULL, pair_address VARCHAR(100) NOT NULL UNIQUE,
     nombre VARCHAR(100) DEFAULT NULL, simbolo VARCHAR(20) DEFAULT NULL,
-    precio_actual DECIMAL(20, 18) DEFAULT 0, precio_entrada DECIMAL(20, 18) DEFAULT 0,
-    precio_descubrimiento DECIMAL(20, 18) DEFAULT 0,
-    precio_crash DECIMAL(20, 18) DEFAULT NULL, precio_maximo DECIMAL(20, 18) DEFAULT 0,
-    precio_15_peak DECIMAL(20, 18) DEFAULT 0, last_check_price DECIMAL(20, 18) DEFAULT 0,
+    precio_actual DECIMAL(30, 18) DEFAULT 0, precio_entrada DECIMAL(30, 18) DEFAULT 0,
+    precio_descubrimiento DECIMAL(30, 18) DEFAULT 0,
+    precio_crash DECIMAL(30, 18) DEFAULT NULL, precio_maximo DECIMAL(30, 18) DEFAULT 0,
+    precio_15_peak DECIMAL(30, 18) DEFAULT 0, last_check_price DECIMAL(20, 18) DEFAULT 0,
     market_cap DECIMAL(20, 2) DEFAULT 0, liquidez DECIMAL(20, 2) DEFAULT 0,
     cambio_1h DECIMAL(10, 2) DEFAULT 0, cambio_6h DECIMAL(10, 2) DEFAULT 0,
     cambio_24h DECIMAL(10, 2) DEFAULT 0,
@@ -138,9 +149,9 @@ print_line("    • tokens_banned", 'success');
 $pdo->exec("CREATE TABLE IF NOT EXISTS historial_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY, id_token_original INT NOT NULL,
     chain_id VARCHAR(20), token_address VARCHAR(100), pair_address VARCHAR(100),
-    nombre VARCHAR(100), simbolo VARCHAR(20), precio_entrada DECIMAL(20, 18),
-    precio_descubrimiento DECIMAL(20, 18) DEFAULT 0,
-    precio_salida DECIMAL(20, 18), profit_porcentaje DECIMAL(10, 2),
+    nombre VARCHAR(100), simbolo VARCHAR(20), precio_entrada DECIMAL(30, 18),
+    precio_descubrimiento DECIMAL(30, 18) DEFAULT 0,
+    precio_salida DECIMAL(30, 18), profit_porcentaje DECIMAL(10, 2),
     duracion_minutos INT, razon_salida ENUM('tp', 'sl', 'save_tp', 'caida_pico', 'timeout', 'ban', 'expirado', 'manual') DEFAULT 'expirado',
     tag VARCHAR(20) DEFAULT NULL,
     es_reentry BOOLEAN DEFAULT FALSE, fecha_entrada DATETIME,
@@ -230,6 +241,14 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS signals (
     INDEX idx_signals_user (user_id), INDEX idx_signals_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 print_line("    • signals", 'success');
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS manual_coins (
+    id INT AUTO_INCREMENT PRIMARY KEY, token_address VARCHAR(100) NOT NULL,
+    estado ENUM('pendiente', 'procesado', 'error') DEFAULT 'pendiente',
+    mensaje TEXT DEFAULT NULL, creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+    procesado_en DATETIME DEFAULT NULL, INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+print_line("    • manual_coins", 'success');
 
 step_end();
 

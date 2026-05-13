@@ -10,6 +10,11 @@ DROP TABLE IF EXISTS tokens_free;
 DROP TABLE IF EXISTS tokens_banned;
 DROP TABLE IF EXISTS coins_revisadas;
 DROP TABLE IF EXISTS tokens;
+DROP TABLE IF EXISTS manual_coins;
+DROP TABLE IF EXISTS signals;
+DROP TABLE IF EXISTS daily_profit_tracker;
+DROP TABLE IF EXISTS system_criteria;
+DROP TABLE IF EXISTS api_keys;
 DROP TABLE IF EXISTS logs;
 DROP TABLE IF EXISTS configuracion;
 DROP TABLE IF EXISTS servidor_status;
@@ -46,12 +51,12 @@ CREATE TABLE tokens (
     pair_address VARCHAR(100) NOT NULL UNIQUE,
     nombre VARCHAR(100) DEFAULT NULL,
     simbolo VARCHAR(20) DEFAULT NULL,
-    precio_actual DECIMAL(20, 18) DEFAULT 0,
-    precio_entrada DECIMAL(20, 18) DEFAULT 0,
-    precio_descubrimiento DECIMAL(20, 18) DEFAULT 0,
-    precio_crash DECIMAL(20, 18) DEFAULT NULL,
-    precio_maximo DECIMAL(20, 18) DEFAULT 0,
-    precio_15_peak DECIMAL(20, 18) DEFAULT 0,
+    precio_actual DECIMAL(30, 18) DEFAULT 0,
+    precio_entrada DECIMAL(30, 18) DEFAULT 0,
+    precio_descubrimiento DECIMAL(30, 18) DEFAULT 0,
+    precio_crash DECIMAL(30, 18) DEFAULT NULL,
+    precio_maximo DECIMAL(30, 18) DEFAULT 0,
+    precio_15_peak DECIMAL(30, 18) DEFAULT 0,
     last_check_price DECIMAL(20, 18) DEFAULT 0,
     market_cap DECIMAL(20, 2) DEFAULT 0,
     liquidez DECIMAL(20, 2) DEFAULT 0,
@@ -118,9 +123,9 @@ CREATE TABLE historial_tokens (
     pair_address VARCHAR(100),
     nombre VARCHAR(100),
     simbolo VARCHAR(20),
-    precio_entrada DECIMAL(20, 18),
-    precio_descubrimiento DECIMAL(20, 18) DEFAULT 0,
-    precio_salida DECIMAL(20, 18),
+    precio_entrada DECIMAL(30, 18),
+    precio_descubrimiento DECIMAL(30, 18) DEFAULT 0,
+    precio_salida DECIMAL(30, 18),
     profit_porcentaje DECIMAL(10, 2),
     duracion_minutos INT,
     razon_salida ENUM('tp', 'sl', 'save_tp', 'caida_pico', 'timeout', 'ban', 'expirado', 'manual') DEFAULT 'expirado',
@@ -207,14 +212,14 @@ CREATE TABLE coins_revisadas (
 -- DATOS INICIALES
 -- =====================================================
 
-INSERT INTO usuarios (username, pin, nivel, nivel_detalle) VALUES
-('admin', '1234', 'admin', NULL);
+INSERT INTO usuarios (username, pin, nivel, plan, is_admin) VALUES
+('admin', '1234', 'admin', 'ultra', 1);
 
-INSERT INTO usuarios (username, pin, nivel, nivel_detalle) VALUES
-('freeuser', '1111', 'vip', '1');
+INSERT INTO usuarios (username, pin, nivel, plan, nivel_detalle) VALUES
+('freeuser', '1111', 'vip', 'basic', '1');
 
-INSERT INTO usuarios (username, pin, nivel, nivel_detalle) VALUES
-('vipuser', '2222', 'vip', '2');
+INSERT INTO usuarios (username, pin, nivel, plan, nivel_detalle) VALUES
+('vipuser', '2222', 'vip', 'pro', '2');
 
 INSERT INTO servidor_status (id, activo) VALUES (1, 0);
 
@@ -285,4 +290,17 @@ CREATE TABLE IF NOT EXISTS signals (
     FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     INDEX idx_signals_user (user_id),
     INDEX idx_signals_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+-- Tabla: manual_coins
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS manual_coins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token_address VARCHAR(100) NOT NULL,
+    estado ENUM('pendiente', 'procesado', 'error') DEFAULT 'pendiente',
+    mensaje TEXT DEFAULT NULL,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+    procesado_en DATETIME DEFAULT NULL,
+    INDEX idx_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

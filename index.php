@@ -1612,6 +1612,17 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         </div>
                     </div>
 
+                    <div class="admin-section" id="manualCoinSection" style="margin-bottom:24px;">
+                        <h3 class="section-title" style="display:flex;align-items:center;gap:8px;">
+                            <i data-lucide="plus-circle" style="width:18px;height:18px;stroke:var(--accent-primary);stroke-width:1.75"></i> Add Manual Coin
+                        </h3>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="text" id="manualCoinAddress" placeholder="Solana token address..." style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(79,70,229,0.2);border-radius:6px;padding:10px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:13px;">
+                            <button class="btn-add" onclick="addManualCoin()" id="btnAddManualCoin">Add Coin</button>
+                        </div>
+                        <div id="manualCoinStatus" style="margin-top:8px;font-size:13px;color:var(--text-muted);"></div>
+                    </div>
+
                     <div class="admin-users">
                         <div class="admin-users-header">
                             <i data-lucide="users" style="width:20px;height:20px;stroke:var(--accent-primary);stroke-width:1.75"></i> User Management
@@ -1958,7 +1969,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
                         <div class="token-address">
                             <span>${truncateAddress(t.token_address)}</span>
-                            <button class="btn-copy" onclick="copyToClipboard('${t.token_address}')">Copiar</button>
+                            <button class="btn-copy" onclick="copyToClipboard('${t.token_address}', this)">Copiar</button>
                         </div>
 
                         <div class="tiempo-restante" id="tiempoRestante">
@@ -2113,7 +2124,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                                 <td data-label="Reason">${getRazonSalida(h.razon_salida)}</td>
                                 <td data-label="Address" style="font-size:0.75rem;">
                                     <span title="${h.token_address}">${h.token_address ? h.token_address.substring(0, 6) + '...' + h.token_address.substring(h.token_address.length - 4) : '-'}</span>
-                                    ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}')">Copiar</button>` : ''}
+                                    ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}', this)">Copiar</button>` : ''}
                                 </td>
                                 ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="showTokenDetail(${h.id})" class="btn-edit" style="margin-right:4px;">Details</button><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
                             </tr>`;
@@ -2208,7 +2219,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <div class="info-section">
                                 <div class="info-section-title">Address</div>
                                 <div class="info-row"><span class="info-value" style="font-size:11px;word-break:break-all;">${tokenAddress}</span></div>
-                                <div style="text-align:center;margin-top:6px;"><button class="btn-copy" onclick="copyToClipboard('${tokenAddress}')" style="font-size:12px;">Copy Address</button></div>
+                                <div style="text-align:center;margin-top:6px;"><button class="btn-copy" onclick="copyToClipboard('${tokenAddress}', this)" style="font-size:12px;">Copy Address</button></div>
                             </div>
 
                             <div style="text-align:center;margin-top:12px;">
@@ -2256,9 +2267,43 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <span class="chain-badge ${getChainClass(t.chain_id)}">${t.chain_id}</span>
                     </div>
                     <div class="token-price">$${formatPrice(t.precio_actual)} <span class="profit-badge ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
+                    ${(currentUser.nivel === 'admin' || currentUser.is_admin) ? `
+                        <button class="btn-delete" onclick="event.stopPropagation();forceExitToken(${t.id},'${(t.nombre || t.simbolo || 'Token').replace(/'/g, "\\'")}')" 
+                                style="margin-top:6px;font-size:11px;padding:4px 10px;width:100%;">Exit</button>
+                    ` : ''}
                     <div class="token-status status-${t.estado}" style="margin-top:6px;font-size:11px;text-align:center;">${t.estado === 'monitoreando' ? 'Monitoreando' : 'Nuevo'}</div>
                 </div>
             `;
+        }
+
+        // Force exit token (admin only)
+        function forceExitToken(tokenId, tokenName) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Exit ' + tokenName + '?',
+                text: 'This will immediately close this position at current price.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, exit',
+                confirmButtonColor: 'var(--error)',
+                cancelButtonText: 'Cancel'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                fetch('api/admin.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                    body: JSON.stringify({ action: 'force_exit', token_id: tokenId })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', text: 'Token exited', timer: 1500, position: 'top' });
+                        loadData();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+                    }
+                })
+                .catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+            });
         }
 
         // Ban historial token (admin only)
@@ -2396,6 +2441,40 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 btn.textContent = 'Save Criteria';
                 btn.disabled = false;
             });
+        }
+
+        // Manual coin insertion
+        function addManualCoin() {
+            const address = document.getElementById('manualCoinAddress').value.trim();
+            if (!address) return;
+            const btn = document.getElementById('btnAddManualCoin');
+            const status = document.getElementById('manualCoinStatus');
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            status.textContent = '';
+            fetch('api/admin.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: JSON.stringify({ action: 'insertar_token_manual', token_address: address })
+            })
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('manualCoinAddress').value = '';
+                if (d.success) {
+                    status.textContent = '✓ Coin added. The server will process it shortly.';
+                    status.style.color = 'var(--success)';
+                } else {
+                    status.textContent = '✗ ' + (d.error || 'Error');
+                    status.style.color = 'var(--error)';
+                }
+                setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 5000);
+            })
+            .catch(() => {
+                status.textContent = '✗ Connection error';
+                status.style.color = 'var(--error)';
+                setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 5000);
+            })
+            .finally(() => { btn.disabled = false; btn.textContent = 'Add Coin'; });
         }
 
         // Show token detail modal (admin only)
@@ -2722,10 +2801,30 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             return map[r] || r;
         }
 
-        window.copyToClipboard = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
+        window.copyToClipboard = (text, btn) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (btn) {
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = '#fff';
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            } else {
                 Swal.fire({ icon: 'success', text: 'Copied to clipboard', timer: 1500, position: 'top' });
-            });
+            }
         };
 
         // Scroll entrance animations

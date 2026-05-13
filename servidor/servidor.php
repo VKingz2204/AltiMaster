@@ -35,7 +35,10 @@ while (true) {
     try {
         $pdo->query("UPDATE servidor_status SET ultimo_check = NOW() WHERE id = 1");
 
-        if (!$busquedaEnProgreso && ($revisionCiclos === 0 || $revisionCiclos >= $ciclosParaBuscar)) {
+        if ($revisionCiclos === 0 || $revisionCiclos >= $ciclosParaBuscar) {
+            if ($busquedaEnProgreso) {
+                $busquedaEnProgreso = false;
+            }
             echo "[" . date('Y-m-d H:i:s') . "] === NEW CYCLE ===\n";
             echo "[" . date('Y-m-d H:i:s') . "] 1. Launching background token search...\n";
             $busquedaEnProgreso = true;

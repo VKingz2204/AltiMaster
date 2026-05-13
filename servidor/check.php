@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 date_default_timezone_set('America/Bogota');
 
 require_once __DIR__ . '/../api/config.php';
+require_once __DIR__ . '/../api/engine.php';
 
 echo "[" . date('Y-m-d H:i:s') . "] Starting AltChecks Monitor (Check Process)...\n";
 echo "DB connected: " . (isset($pdo) ? "YES" : "NO") . "\n";

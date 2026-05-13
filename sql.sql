@@ -27,6 +27,8 @@ CREATE TABLE usuarios (
     pin VARCHAR(10) NOT NULL,
     nivel ENUM('admin', 'free', 'vip') NOT NULL DEFAULT 'free',
     nivel_detalle VARCHAR(20) DEFAULT '1',
+    plan ENUM('basic', 'pro', 'ultra') DEFAULT 'basic',
+    is_admin BOOLEAN DEFAULT FALSE,
     creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
     ultimo_login DATETIME DEFAULT NULL,
     activo BOOLEAN DEFAULT TRUE,
@@ -225,3 +227,62 @@ INSERT INTO configuracion (clave, valor, descripcion) VALUES
 ('reentry_subida_min', '5', 'Min rise for re-entry (%)'),
 ('crash_porcentaje', '-4000', 'Crash percentage'),
 ('free_cambio_horas', '6', 'Free token change hours');
+
+-- --------------------------------------------------------
+-- Tabla: api_keys
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    key VARCHAR(36) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_regenerated_at TIMESTAMP NULL DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+-- Tabla: system_criteria
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS system_criteria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    stop_loss_pct DECIMAL(10, 2) DEFAULT -6.0,
+    take_profit_pct DECIMAL(10, 2) DEFAULT 24.0,
+    max_wait_minutes INT DEFAULT 60,
+    save_profit_pct DECIMAL(10, 2) DEFAULT -6.0,
+    min_entry_pct DECIMAL(10, 2) DEFAULT 1.5,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+-- Tabla: daily_profit_tracker
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS daily_profit_tracker (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    date DATE NOT NULL,
+    accumulated_pct DECIMAL(10, 2) DEFAULT 0.0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY idx_user_date (user_id, date),
+    FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+-- Tabla: signals
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS signals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    contract VARCHAR(100) NOT NULL,
+    direction ENUM('long', 'short') NOT NULL DEFAULT 'long',
+    entry_price DECIMAL(20, 18),
+    status ENUM('active', 'closed', 'expired') DEFAULT 'active',
+    criteria_snapshot JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    closed_at TIMESTAMP NULL DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    INDEX idx_signals_user (user_id),
+    INDEX idx_signals_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

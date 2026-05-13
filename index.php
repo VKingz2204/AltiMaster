@@ -917,6 +917,87 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             margin-bottom: 32px;
         }
 
+        .api-key-card {
+            background: rgba(20, 26, 61, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(79, 70, 229, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .api-key-card .key-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 14px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin: 10px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .api-key-card .key-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .criteria-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .criteria-field {
+            background: rgba(20, 26, 61, 0.4);
+            border: 1px solid rgba(79, 70, 229, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .criteria-field .field-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .criteria-field input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .criteria-field input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .criteria-field input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .criteria-field .static-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 4px 0;
+        }
+
         .detail-modal {
             text-align: left;
         }
@@ -1398,49 +1479,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             <div class="login-footer">
                 © 2026 AltChecks - Token Monitoring System
             </div>
-            <div style="margin-top:16px;text-align:center;">
-                <button type="button" onclick="document.getElementById('pricingSection').classList.toggle('hidden')" style="background:none;border:none;color:var(--accent-primary);cursor:pointer;font-size:0.9rem;">View Plans and Prices ▾</button>
-            </div>
-            <div id="pricingSection" class="hidden" style="margin-top:16px;background:rgba(45,40,80,0.5);border-radius:12px;padding:16px;">
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                    <div style="background:var(--bg-secondary);padding:16px;border-radius:10px;border:1px solid var(--border-color);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="color:#aaa;font-weight:700;font-size:1.1rem;">BASIC</span>
-                            <span style="color:#fff;font-size:1.4rem;font-weight:700;">$20<small style="color:#666;font-size:0.8rem;font-weight:400;">/28 days</small></span>
-                        </div>
-                        <div style="color:#888;font-size:0.8rem;line-height:1.6;">
-                            • 5-10 tokens/week<br>
-                            • 5-10% daily earnings<br>
-                            • No API access<br>
-                            • Update every 6h
-                        </div>
-                    </div>
-                    <div style="background:var(--bg-secondary);padding:16px;border-radius:10px;border:1px solid var(--accent-primary);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="color:var(--accent-primary);font-weight:700;font-size:1.1rem;">PRO</span>
-                            <span style="color:#fff;font-size:1.4rem;font-weight:700;">$20<small style="color:#666;font-size:0.8rem;font-weight:400;">/14 days</small></span>
-                        </div>
-                        <div style="color:#888;font-size:0.8rem;line-height:1.6;">
-                            • 10-30 tokens/week<br>
-                            • 15-25% daily earnings<br>
-                            • Limited API<br>
-                            • No live support
-                        </div>
-                    </div>
-                    <div style="background:var(--bg-secondary);padding:16px;border-radius:10px;border:1px solid var(--success);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="color:var(--success);font-weight:700;font-size:1.1rem;">ULTRA</span>
-                            <span style="color:#fff;font-size:1.4rem;font-weight:700;">$20<small style="color:#666;font-size:0.8rem;font-weight:400;">/7 days</small></span>
-                        </div>
-                        <div style="color:#888;font-size:0.8rem;line-height:1.6;">
-                            • 50+ tokens/week<br>
-                            • 35-50% daily earnings<br>
-                            • Unlimited API<br>
-                            • 24/7 live support
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1550,6 +1588,30 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 <div id="adminContent">
                     <div class="admin-stats" id="adminStats"></div>
 
+                    <div class="api-key-card" id="apiKeyCard">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                            <i data-lucide="key" style="width:18px;height:18px;stroke:var(--accent-primary);stroke-width:1.75"></i>
+                            <span style="font-weight:600;font-size:14px;">API Key</span>
+                        </div>
+                        <div class="key-display" id="apiKeyDisplay">Loading...</div>
+                        <div class="key-actions">
+                            <button class="btn-edit" onclick="revealApiKey()" id="btnRevealKey">Reveal</button>
+                            <button class="btn-copy" onclick="copyApiKey()" id="btnCopyKey">Copy</button>
+                            <button class="btn-edit" onclick="regenerateApiKey()" id="btnRegenKey">Rehacer</button>
+                            <span id="regenCountdown" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;"></span>
+                        </div>
+                    </div>
+
+                    <div class="admin-section" id="criteriaSection" style="margin-bottom:24px;">
+                        <h3 class="section-title" style="display:flex;align-items:center;gap:8px;">
+                            <i data-lucide="sliders" style="width:18px;height:18px;stroke:var(--text-muted);stroke-width:1.75"></i> Trading Criteria
+                        </h3>
+                        <div id="criteriaContent">
+                            <div class="criteria-form" id="criteriaForm"></div>
+                            <button class="btn-add" onclick="saveCriteria()" id="btnSaveCriteria" style="display:none;">Save Criteria</button>
+                        </div>
+                    </div>
+
                     <div class="admin-users">
                         <div class="admin-users-header">
                             <i data-lucide="users" style="width:20px;height:20px;stroke:var(--accent-primary);stroke-width:1.75"></i> User Management
@@ -1572,33 +1634,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     </div>
                 </div>
 
-                    <div class="admin-section" style="margin-top:30px;">
-                        <h3 class="section-title" style="cursor:pointer;display:flex;align-items:center;gap:8px;" onclick="document.getElementById('criteriosContent').style.display = document.getElementById('criteriosContent').style.display === 'none' ? 'block' : 'none';">
-                            <i data-lucide="clipboard-list" style="width:18px;height:18px;stroke:var(--text-muted);stroke-width:1.75"></i> System Criteria <span style="font-size:0.8rem;color:var(--text-muted);">(click to expand)</span>
-                        </h3>
-                        <div id="criteriosContent" style="display:none;">
-                            <div class="criterios-grid" id="criteriosGrid"></div>
-                        </div>
-                    </div>
-
-                    <div class="admin-section" style="margin-top:30px;">
-                        <i data-lucide="coins" style="width:20px;height:20px;stroke:var(--accent-primary);stroke-width:1.75"></i> Reviewed Coins
-                        <div class="table-wrapper">
-                            <table class="historial-table">
-                                <thead>
-                                    <tr>
-                                        <th>Token</th>
-                                        <th>Chain</th>
-                                        <th>Price</th>
-                                        <th>MC</th>
-                                        <th>Reason</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="coinsTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </section>
         </main>
@@ -1766,13 +1801,20 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             console.log('AltChecks: Updating server status...');
             updateServerStatus();
 
-            if (currentUser.nivel === 'admin') {
+            const isConfig =
+                currentUser.is_admin ||
+                currentUser.plan === 'ultra' ||
+                currentUser.plan === 'pro' ||
+                currentUser.nivel === 'admin' ||
+                currentUser.nivel_detalle >= 2;
+            const isAdmin = currentUser.is_admin || currentUser.nivel === 'admin';
+            if (isConfig) {
                 document.getElementById('tabConfig').style.display = 'inline-block';
-                document.getElementById('tabBanned').style.display = 'inline-block';
             } else {
                 document.getElementById('tabConfig').style.display = 'none';
-                document.getElementById('tabBanned').style.display = 'none';
             }
+            document.getElementById('tabBanned').style.display = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('tabHistorial').style.display = isAdmin ? 'inline-block' : 'none';
 
             console.log('AltChecks: Calling loadData()...');
             loadData();
@@ -1851,9 +1893,17 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 document.getElementById('overviewContent').innerHTML = '<div class="error">' + errorMsg + '</div>';
             });
 
-            if (currentUser.nivel === 'admin') {
+            const isAdminLd = currentUser.is_admin || currentUser.nivel === 'admin';
+            const isConfigLd =
+                currentUser.is_admin ||
+                currentUser.plan === 'ultra' ||
+                currentUser.plan === 'pro' ||
+                currentUser.nivel === 'admin' ||
+                currentUser.nivel_detalle >= 2;
+            if (isConfigLd) {
                 loadAdmin();
             }
+            if (!isAdminLd) document.getElementById('tabHistorial').style.display = 'none';
         }
 
         // Render Free User
@@ -1932,22 +1982,20 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             console.log('AltChecks: renderVipUser STARTED');
             try {
                 document.getElementById('tabTokens').style.display = 'inline-block';
-                document.getElementById('tabHistorial').style.display = 'inline-block';
+                const isAdminVu = currentUser.is_admin || currentUser.nivel === 'admin';
+                document.getElementById('tabHistorial').style.display = isAdminVu ? 'inline-block' : 'none';
 
-                // Calcular ganancias de hoy (día Colombia)
-                const ahora = new Date();
-                const colombiaOffset = -5 * 60;
-                const horaColombia = new Date(ahora.getTime() + colombiaOffset * 60 * 1000);
-                const hoyColombia = new Date(horaColombia.getFullYear(), horaColombia.getMonth(), horaColombia.getDate());
-                
+                const hoyServer = new Date();
+                const hoyServerDate = hoyServer.getFullYear() + '-' + String(hoyServer.getMonth() + 1).padStart(2, '0') + '-' + String(hoyServer.getDate()).padStart(2, '0');
+
                 let gananciasHoy = 0;
                 let tradesHoy = 0;
                 if (data.historial && data.historial.length > 0) {
                     data.historial.forEach(h => {
-                        if (h.fecha_salida) {
-                            const fechaTrade = new Date(h.fecha_salida);
-                            const fechaTradeColombia = new Date(fechaTrade.getTime() + colombiaOffset * 60 * 1000);
-                            if (fechaTradeColombia >= hoyColombia) {
+                        if (h.fecha_entrada) {
+                            const fechaTrade = new Date(h.fecha_entrada);
+                            const ft = fechaTrade.getFullYear() + '-' + String(fechaTrade.getMonth() + 1).padStart(2, '0') + '-' + String(fechaTrade.getDate()).padStart(2, '0');
+                            if (ft === hoyServerDate) {
                                 tradesHoy++;
                                 gananciasHoy += parseFloat(h.profit_porcentaje) || 0;
                             }
@@ -1980,9 +2028,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 console.log('AltChecks: Stats rendered, tokens:', data.tokens?.length);
 
                 // Daily Earnings (previous days)
-                const hoyDate = hoyColombia.getFullYear() + '-' +
-                    (hoyColombia.getMonth() + 1).toString().padStart(2, '0') + '-' +
-                    hoyColombia.getDate().toString().padStart(2, '0');
+                const hoyDate = hoyServerDate;
                 fetch('api/tokens.php?action=earnings_by_day', {
                     headers: { 'Authorization': currentToken }
                 })
@@ -2024,10 +2070,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 if (data.historial && data.historial.length > 0) {
                     const groups = {};
                     data.historial.forEach(h => {
-                        if (!h.fecha_salida) return;
-                        const d = new Date(h.fecha_salida);
-                        const dCol = new Date(d.getTime() + colombiaOffset * 60 * 1000);
-                        const key = dCol.getFullYear() + '-' + String(dCol.getMonth() + 1).padStart(2, '0') + '-' + String(dCol.getDate()).padStart(2, '0');
+                        if (!h.fecha_entrada) return;
+                        const d = new Date(h.fecha_entrada);
+                        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                         if (!groups[key]) groups[key] = [];
                         groups[key].push(h);
                     });
@@ -2239,6 +2284,120 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             });
         }
 
+        // Config: reveal API key
+        let _fullApiKey = '';
+        function revealApiKey() {
+            const el = document.getElementById('apiKeyDisplay');
+            const btn = document.getElementById('btnRevealKey');
+            if (el.textContent === _fullApiKey) {
+                el.textContent = _fullApiKey.substring(0, 4) + '••••••••' + _fullApiKey.slice(-3);
+                btn.textContent = 'Reveal';
+            } else {
+                el.textContent = _fullApiKey;
+                btn.textContent = 'Hide';
+            }
+        }
+
+        function copyApiKey() {
+            const btn = document.getElementById('btnCopyKey');
+            const doCopy = (text) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                btn.textContent = '✓ Copied!';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = '#fff';
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            };
+            if (_fullApiKey) { doCopy(_fullApiKey); return; }
+            fetch('api/user_config.php?action=get_api_key', { headers: { 'Authorization': currentToken } })
+            .then(r => r.json())
+            .then(d => { if (d.success && d.api_key) { _fullApiKey = d.api_key.key; doCopy(d.api_key.key); } });
+        }
+
+        // Config: regenerate API key
+        function regenerateApiKey() {
+            const btn = document.getElementById('btnRegenKey');
+            btn.disabled = true;
+            btn.textContent = 'Regenerating...';
+            fetch('api/user_config.php?action=regenerate_key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: '{}'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error === 'too_soon') {
+                    const h = data.retry_after_hours || 0;
+                    const m = data.retry_after_minutes || 0;
+                    document.getElementById('regenCountdown').textContent = `Available in ${h}h ${m}m`;
+                    btn.disabled = false;
+                    btn.textContent = 'Rehacer';
+                    setTimeout(() => document.getElementById('regenCountdown').textContent = '', 8000);
+                } else if (data.success) {
+                    _fullApiKey = data.api_key;
+                    document.getElementById('apiKeyDisplay').textContent = data.api_key.substring(0, 4) + '••••••••' + data.api_key.slice(-3);
+                    document.getElementById('btnRevealKey').textContent = 'Reveal';
+                    document.getElementById('regenCountdown').textContent = 'Key regenerated!';
+                    btn.disabled = false;
+                    btn.textContent = 'Rehacer';
+                    setTimeout(() => document.getElementById('regenCountdown').textContent = '', 4000);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+                    btn.disabled = false;
+                    btn.textContent = 'Rehacer';
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.textContent = 'Rehacer';
+            });
+        }
+
+        // Config: save criteria
+        function saveCriteria() {
+            const editable = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes', 'save_profit_pct'];
+            const payload = {};
+            editable.forEach(k => {
+                const el = document.getElementById('criteria-' + k);
+                if (el) payload[k] = parseFloat(el.value);
+            });
+            const btn = document.getElementById('btnSaveCriteria');
+            btn.textContent = 'Saving...';
+            btn.disabled = true;
+            fetch('api/user_config.php?action=criteria', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.textContent = 'Saved!';
+                    setTimeout(() => { btn.textContent = 'Save Criteria'; btn.disabled = false; }, 2000);
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+                    btn.textContent = 'Save Criteria';
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                btn.textContent = 'Save Criteria';
+                btn.disabled = false;
+            });
+        }
+
         // Show token detail modal (admin only)
         function showTokenDetail(historialId) {
             fetch('api/tokens.php?action=detail&id=' + historialId, {
@@ -2302,6 +2461,12 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         // Admin
         function loadAdmin() {
+            const isAdminLa = currentUser.is_admin || currentUser.nivel === 'admin';
+            const addBtn = document.getElementById('addUserBtn');
+            if (addBtn) addBtn.style.display = isAdminLa ? '' : 'none';
+            const userMgmt = document.querySelector('.admin-users');
+            if (userMgmt) userMgmt.style.display = isAdminLa ? '' : 'none';
+
             // Heartbeat - señal del servidor
             fetch('api/tokens.php?action=server', {
                 headers: { 'Authorization': currentToken }
@@ -2321,6 +2486,54 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 html += '</div>';
                 html += `<div class="stat-card"><div class="label">Active Tokens</div><div class="value">${s?.tokens_activos || 0}</div></div>`;
                 document.getElementById('adminStats').innerHTML = html;
+            });
+
+            // Cargar API Key
+            fetch('api/user_config.php?action=get_api_key', {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.api_key) {
+                    document.getElementById('apiKeyDisplay').textContent = data.api_key.key_obfuscated;
+                    _fullApiKey = data.api_key.key;
+                }
+            });
+
+            // Cargar criteria del usuario (nuevo system_criteria)
+            fetch('api/user_config.php?action=criteria', {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                const c = data.criteria;
+                const editable = data.editable_fields || [];
+                const plan = currentUser.plan || 'basic';
+                const fields = [
+                    { key: 'stop_loss_pct', label: 'Stop Loss (%)', suffix: '%', negative: true },
+                    { key: 'take_profit_pct', label: 'Take Profit (%)', suffix: '%', positive: true },
+                    { key: 'max_wait_minutes', label: 'Max Wait (minutes)', suffix: ' min', integer: true },
+                    { key: 'save_profit_pct', label: 'Save Profit - Drop from Peak (%)', suffix: '%', negative: true }
+                ];
+                let html = '';
+                const isEditable = editable.length > 0;
+                fields.forEach(f => {
+                    const canEdit = editable.includes(f.key);
+                    const val = c[f.key];
+                    html += '<div class="criteria-field">';
+                    html += `<div class="field-label">${f.label}`;
+
+                    html += '</div>';
+                    if (canEdit) {
+                        html += `<input type="number" step="0.1" id="criteria-${f.key}" value="${val}" data-key="${f.key}">`;
+                    } else {
+                        html += `<div class="static-value">${val}${f.suffix || ''}</div>`;
+                    }
+                    html += '</div>';
+                });
+                document.getElementById('criteriaForm').innerHTML = html;
+                document.getElementById('btnSaveCriteria').style.display = isEditable ? 'inline-block' : 'none';
             });
 
             // Cargar usuarios
@@ -2363,45 +2576,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 `).join('');
             });
 
-            // Cargar criterios
-            fetch('api/admin.php?action=criterios', {
-                headers: { 'Authorization': currentToken }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.success) return;
-                document.getElementById('criteriosGrid').innerHTML = data.criterios.map(c => `
-                    <div class="criterio-card">
-                        <div class="label">${c.label}</div>
-                        <div class="value">${c.valor}</div>
-                    </div>
-                `).join('');
-            });
-
-            // Cargar coins revisadas
-            fetch('api/admin.php?action=coins_revisadas&limit=50', {
-                headers: { 'Authorization': currentToken }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.success) return;
-                const coinsTable = document.getElementById('coinsTable');
-                if (data.coins && data.coins.length > 0) {
-                    coinsTable.innerHTML = data.coins.map(c => `
-                        <tr>
-                            <td data-label="Token">${c.nombre || truncateAddress(c.pair_address)}</td>
-                            <td data-label="Chain">${c.chain_id || '-'}</td>
-                            <td data-label="Price">$${formatPrice(c.precio)}</td>
-                            <td data-label="MC">$${formatNumber(c.market_cap)}</td>
-                            <td data-label="Action"><span class="coin-action-${c.accion}">${c.accion}</span></td>
-                            <td data-label="Reason">${c.razon || '-'}</td>
-                            <td data-label="Date">${formatDate(c.revisado_en)}</td>
-                        </tr>
-                    `).join('');
-                } else {
-                    coinsTable.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No reviewed coins</td></tr>';
-                }
-            });
         }
 
         // Modal

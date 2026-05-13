@@ -187,13 +187,14 @@ if ($method === 'GET') {
                     COUNT(*) as total_trades
                 FROM historial_tokens
                 WHERE fecha_entrada IS NOT NULL
+                    AND fecha_entrada >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                 GROUP BY DATE(fecha_entrada)
                 ORDER BY entry_date DESC
-                LIMIT 30
             ");
             echo json_encode([
                 'success' => true,
-                'earnings' => $stmt->fetchAll()
+                'earnings' => $stmt->fetchAll(),
+                'today' => date('Y-m-d')
             ]);
             break;
 

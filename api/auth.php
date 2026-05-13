@@ -32,7 +32,7 @@ if ($method === 'POST') {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT id, username, pin, nivel, nivel_detalle, ultimo_login FROM usuarios WHERE username = ? AND activo = 1");
+    $stmt = $pdo->prepare("SELECT id, username, pin, nivel, nivel_detalle, plan, is_admin, ultimo_login FROM usuarios WHERE username = ? AND activo = 1");
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
@@ -54,6 +54,18 @@ if ($method === 'POST') {
     $token = hash('sha256', $user['id'] . $user['username'] . 'altchecks_secret');
     $nivelDetalle = $user['nivel_detalle'] ?? 1;
 
+    // Auto-create API key if not exists
+    $stmtKey = $pdo->prepare("SELECT `key` FROM api_keys WHERE user_id = ?");
+    $stmtKey->execute([$user['id']]);
+    $existingKey = $stmtKey->fetch();
+    if ($existingKey) {
+        $apiKey = $existingKey['key'];
+    } else {
+        $apiKey = generateUUID();
+        $pdo->prepare("INSERT INTO api_keys (user_id, `key`) VALUES (?, ?)")->execute([$user['id'], $apiKey]);
+        $pdo->prepare("INSERT INTO system_criteria (user_id) VALUES (?)")->execute([$user['id']]);
+    }
+
     echo json_encode([
         'success' => true,
         'user' => [
@@ -61,7 +73,10 @@ if ($method === 'POST') {
             'username' => $user['username'],
             'nivel' => $user['nivel'],
             'nivel_detalle' => $nivelDetalle,
-            'token' => $token
+            'plan' => $user['plan'] ?? 'basic',
+            'is_admin' => (bool)($user['is_admin'] ?? false),
+            'token' => $token,
+            'api_key' => $apiKey
         ],
         'server' => [
             'activo' => isServerActive()
@@ -80,7 +95,7 @@ if ($method === 'GET') {
         exit;
     }
 
-    $stmt = $pdo->query("SELECT id, username, nivel FROM usuarios WHERE activo = 1");
+    $stmt = $pdo->query("SELECT id, username, nivel, plan, is_admin FROM usuarios WHERE activo = 1");
     $users = $stmt->fetchAll();
 
     foreach ($users as $u) {
@@ -92,6 +107,8 @@ if ($method === 'GET') {
                     'id' => $u['id'],
                     'username' => $u['username'],
                     'nivel' => $u['nivel'],
+                    'plan' => $u['plan'] ?? 'basic',
+                    'is_admin' => (bool)($u['is_admin'] ?? false),
                     'token' => $token
                 ]
             ]);

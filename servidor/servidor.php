@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 date_default_timezone_set('America/Bogota');
 
 require_once __DIR__ . '/../api/config.php';
+require_once __DIR__ . '/../api/engine.php';
 
 echo "[" . date('Y-m-d H:i:s') . "] Starting AltChecks Server...\n";
 echo "DB connected: " . (isset($pdo) ? "YES" : "NO") . "\n";
@@ -54,6 +55,15 @@ while (true) {
         $stmt = $pdo->query("SELECT COUNT(*) as count FROM tokens WHERE estado = 'monitoreando'");
         $count = $stmt->fetch();
         $pdo->query("UPDATE servidor_status SET tokens_activos = " . $count['count'] . " WHERE id = 1");
+
+        try {
+            $expiredCount = expireStaleSignals($pdo);
+            if ($expiredCount > 0) {
+                echo "[" . date('Y-m-d H:i:s') . "] ⏰ Expired $expiredCount stale signals\n";
+            }
+        } catch (Exception $e) {
+            echo "[" . date('Y-m-d H:i:s') . "] ⚠ Signal expiry skipped: " . $e->getMessage() . "\n";
+        }
 
     } catch (Exception $e) {
         echo "[" . date('Y-m-d H:i:s') . "] Error: " . $e->getMessage() . "\n";
@@ -291,7 +301,12 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
                 ->execute([$precioActual, $precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
             
             actualizarTokenFree($pdo, $token['id']);
-            
+
+            $signalUsers = $pdo->query("SELECT id FROM api_keys")->fetchAll();
+            foreach ($signalUsers as $su) {
+                createSignal($pdo, $su['id'], $token['token_address'], $precioActual);
+            }
+
             registrarCoinRevisada(
                 $pdo, $token['pair_address'], $token['chain_id'],
                 $token['nombre'], $precioActual,
@@ -607,7 +622,12 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
                 ->execute([$precioActual, $precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $token['id']]);
             
             actualizarTokenFree($pdo, $token['id']);
-            
+
+            $signalUsers = $pdo->query("SELECT id FROM api_keys")->fetchAll();
+            foreach ($signalUsers as $su) {
+                createSignal($pdo, $su['id'], $token['token_address'], $precioActual);
+            }
+
             registrarCoinRevisada(
                 $pdo, $token['pair_address'], $token['chain_id'],
                 $token['nombre'], $precioActual,

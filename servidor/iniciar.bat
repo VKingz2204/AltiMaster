@@ -1,13 +1,14 @@
 @echo off
-echo ============================================
-echo AltChecks Server - Iniciador
-echo ============================================
-echo.
-
+title AltChecks Server - Dashboard
 cd /d "%~dp0"
 
-echo Iniciando servidor...
-"C:\xampp\php\php.exe" servidor.php
+REM Enable ANSI escape sequences in Windows 10+
+reg query "HKCU\Console" /v VirtualTerminalLevel 2>nul | find "0x1" >nul
+if errorlevel 1 (
+    reg add "HKCU\Console" /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
+)
+
+"C:\xampp\php\php.exe" -d output_buffering=0 servidor.php
 
 if errorlevel 1 (
     echo.

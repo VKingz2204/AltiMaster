@@ -11,7 +11,8 @@ echo "[" . date('Y-m-d H:i:s') . "] 🔍 Background search started (PID: " . get
 
 buscarNuevosTokens($pdo, $tpPorcentaje);
 
-echo "[" . date('Y-m-d H:i:s') . "] ✅ Background search finished\n";
+echo "[" . date('Y-m-d H:i:s') . "] Background search finished\n";
+file_put_contents(__DIR__ . '/.search_done', date('Y-m-d H:i:s'));
 
 function buscarNuevosTokens($pdo, $tpPorcentaje) {
     echo "[" . date('Y-m-d H:i:s') . "] 🔍 Querying DexScreener APIs...\n";
@@ -95,6 +96,12 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
 
             $liquidezMinima = max(50000, $marketCap * 0.015);
             if ($liquidez < $liquidezMinima) continue;
+
+            $pairCreatedAt = $pairData['pairCreatedAt'] ?? 0;
+            if ($pairCreatedAt > 0 && (time() * 1000 - $pairCreatedAt) > 6 * 3600 * 1000) {
+                echo "[" . date('Y-m-d H:i:s') . "]     -> Skipped (older than 6h): " . ($pairData['baseToken']['name'] ?? $pairData['baseToken']['symbol'] ?? $tokenAddress) . "\n";
+                continue;
+            }
 
             $tokensNuevos[] = [
                 'chain_id' => $chainId,

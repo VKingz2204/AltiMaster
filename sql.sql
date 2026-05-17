@@ -74,6 +74,7 @@ CREATE TABLE tokens (
     laps INT DEFAULT 0,
     timeout_count INT DEFAULT 0,
     tag VARCHAR(20) DEFAULT NULL,
+    confirmacion_count INT DEFAULT 0,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_ingreso DATETIME DEFAULT NULL,
     fecha_salida DATETIME DEFAULT NULL,
@@ -147,6 +148,7 @@ CREATE TABLE coins_tags (
     destroyed_count INT DEFAULT 0,
     checking_count INT DEFAULT 0,
     okay_count INT DEFAULT 0,
+    inestable_count INT DEFAULT 0,
     ultimo_tag VARCHAR(20) DEFAULT NULL,
     actualizado_en DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_nombre (nombre_normalizado)
@@ -304,3 +306,4 @@ CREATE TABLE IF NOT EXISTS manual_coins (
     procesado_en DATETIME DEFAULT NULL,
     INDEX idx_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

@@ -19,22 +19,25 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --bg-primary: #0a0d1a;
-            --bg-secondary: #0f1535;
-            --bg-surface: #141a3d;
-            --accent-primary: #4f46e5;
-            --accent-secondary: #7c3aed;
-            --accent-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --bg-primary: #070712;
+            --bg-secondary: #0d0d1a;
+            --bg-surface: #121225;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff006e;
+            --accent-gradient: linear-gradient(135deg, #00d4ff, #ff006e);
             --text-primary: #f0f4ff;
-            --text-muted: #8892b0;
-            --border-color: rgba(79, 70, 229, 0.2);
+            --text-muted: #6b7294;
+            --border-color: rgba(0, 212, 255, 0.15);
 
-            --success: #00D97E;
-            --warning: #FFD666;
-            --error: #FF4757;
-            --free: #FFD666;
-            --vip: #00D97E;
-            --admin: #7B5CFF;
+            --success: #00ff88;
+            --warning: #ffbe0b;
+            --error: #ff0054;
+            --free: #ffbe0b;
+            --vip: #00ff88;
+            --admin: #00d4ff;
+
+            --neon-glow: 0 0 20px rgba(0, 212, 255, 0.3);
+            --neon-pink: 0 0 20px rgba(255, 0, 110, 0.3);
         }
 
         * {
@@ -47,12 +50,14 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             font-family: 'DM Sans', sans-serif;
             background-color: var(--bg-primary);
             background-image: 
-                radial-gradient(rgba(79, 70, 229, 0.12) 0%, transparent 50%),
-                radial-gradient(rgba(124, 58, 237, 0.18) 50%, transparent 50%),
-                radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 24px 24px;
-            background-position: 0 0, 100% 100%, 0 0;
+                radial-gradient(rgba(0, 212, 255, 0.08) 0%, transparent 60%),
+                radial-gradient(rgba(255, 0, 110, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+            background-position: 0 0, 100% 100%, 0 0, 0 0;
             background-attachment: fixed;
+            animation: gridMove 20s linear infinite;
             color: var(--text-primary);
             min-height: 100vh;
             line-height: 1.65;
@@ -118,11 +123,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
         }
 
-        body {
-            background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-
         /* Login */
         .login-container {
             min-height: 100vh;
@@ -130,20 +130,18 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0a0a1e 50%, var(--bg-secondary) 100%);
         }
 
         .login-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
+            background: rgba(18, 18, 37, 0.7);
+            backdrop-filter: blur(20px) saturate(1.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
             border-radius: 16px;
             padding: 40px;
             width: 100%;
             max-width: 400px;
-            animation: fadeIn 0.3s ease;
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            animation: fadeIn 0.3s ease, pulseGlow 3s ease-in-out infinite;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         }
 
@@ -155,8 +153,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .login-logo h1 {
             font-size: 28px;
             font-weight: 700;
-            color: var(--accent-primary);
             letter-spacing: 2px;
+            background: var(--accent-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
         }
 
         .login-logo .icon {
@@ -190,8 +193,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         .form-group input:focus {
             outline: none;
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2), 0 0 20px rgba(79, 70, 229, 0.12);
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 25px rgba(0, 212, 255, 0.15);
         }
 
         .form-group input::placeholder {
@@ -210,12 +213,14 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
+            background: linear-gradient(135deg, #00d4ff, #ff006e);
+            background-size: 200% 200%;
+            color: #fff;
+            animation: shimmer 3s linear infinite;
         }
 
         .btn-primary:hover {
-            box-shadow: 0 0 18px rgba(124, 58, 237, 0.45);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.3), 0 0 50px rgba(255, 0, 110, 0.15);
             transform: scale(1.03);
         }
 
@@ -230,7 +235,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .btn-secondary:hover {
-            background: rgba(79, 70, 229, 0.12);
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .login-error {
@@ -274,9 +279,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         /* Header */
         .header {
-            background: rgba(10, 13, 26, 0.85);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+            background: rgba(7, 7, 18, 0.8);
+            backdrop-filter: blur(20px) saturate(1.5);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
@@ -284,6 +289,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             position: sticky;
             top: 0;
             z-index: 100;
+            animation: pulseGlow 4s ease-in-out infinite;
         }
 
         .header-logo {
@@ -295,9 +301,14 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .header-logo h1 {
             font-size: 22px;
             font-weight: 700;
-            color: var(--accent-primary);
             letter-spacing: 1px;
             font-family: 'Syne', sans-serif;
+            background: var(--accent-gradient);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
         }
 
         .header-logo .icon {
@@ -412,8 +423,10 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .nav-tab.active {
-            background: var(--accent-primary);
-            color: white;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 0, 110, 0.2));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            color: #fff;
         }
 
         /* Main Content */
@@ -521,19 +534,21 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .token-card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            background: rgba(18, 18, 37, 0.6);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(0, 212, 255, 0.1);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
+            animation: slideIn 0.4s ease forwards;
         }
 
         .token-card:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
+            transform: translateY(-6px);
+            border-color: rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .token-card-header {
@@ -1131,18 +1146,36 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .stat-card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            background: rgba(18, 18, 37, 0.6);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(0, 212, 255, 0.1);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(0,212,255,0.03), transparent, rgba(255,0,110,0.03), transparent);
+            animation: spin 8s linear infinite;
+            z-index: 0;
+        }
+        .stat-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .stat-card:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
+            border-color: rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
+            transform: translateY(-3px);
         }
 
         .stat-card .value {
@@ -1218,12 +1251,12 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .btn-edit {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            color: #070712;
         }
 
         .btn-edit:hover {
-            box-shadow: 0 0 18px rgba(124, 58, 237, 0.45);
+            box-shadow: 0 0 18px rgba(0, 212, 255, 0.45);
             transform: scale(1.03);
         }
 
@@ -1232,12 +1265,12 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .btn-delete {
-            background: linear-gradient(135deg, #ff4757, #ff6b7a);
+            background: linear-gradient(135deg, #ff0054, #ff006e);
             color: white;
         }
 
         .btn-delete:hover {
-            box-shadow: 0 0 18px rgba(255, 71, 87, 0.45);
+            box-shadow: 0 0 18px rgba(255, 0, 84, 0.45);
             transform: scale(1.03);
         }
 
@@ -1246,18 +1279,18 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .btn-add {
-            background: linear-gradient(135deg, #00d97e, #00f5a0);
-            color: #000;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #070712;
             padding: 10px 22px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             transition: all 0.25s ease;
         }
 
         .btn-add:hover {
-            box-shadow: 0 0 18px rgba(0, 217, 126, 0.45);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
             transform: scale(1.03);
         }
 
@@ -1360,7 +1393,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             flex: 1;
         }
 
-        /* Loading */
+        /* Loading - Skeleton */
         .loading {
             text-align: center;
             padding: 40px;
@@ -1377,8 +1410,89 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             margin: 0 auto 16px;
         }
 
+        .skeleton-card {
+            background: rgba(18, 18, 37, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        .skeleton-line {
+            height: 14px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(0,212,255,0.08) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.08) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s linear infinite;
+            margin-bottom: 10px;
+        }
+        .skeleton-line:nth-child(2) { width: 75%; }
+        .skeleton-line:nth-child(3) { width: 50%; }
+        .skeleton-line:last-child { width: 60%; }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(16px) saturate(1.5);
+            border: 1px solid;
+            font-size: 14px;
+            font-weight: 600;
+            animation: toastIn 0.4s ease forwards;
+            pointer-events: auto;
+            min-width: 250px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .toast.toast-exit { animation: fadeOut 0.3s ease forwards; }
+        .toast-tp { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); color: var(--success); }
+        .toast-sl { background: rgba(255,0,84,0.15); border-color: rgba(255,0,84,0.3); color: var(--error); }
+        .toast-info { background: rgba(0,212,255,0.15); border-color: rgba(0,212,255,0.3); color: var(--accent-primary); }
+        .toast .toast-sub { font-size: 12px; opacity: 0.7; font-weight: 400; margin-top: 2px; }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(0,212,255,0.2), 0 0 16px rgba(0,212,255,0.1); }
+            50% { box-shadow: 0 0 16px rgba(0,212,255,0.4), 0 0 32px rgba(0,212,255,0.2); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes gridMove {
+            0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+            100% { background-position: 0 0, 0 0, 24px 24px, 24px 24px; }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         /* Responsive */
@@ -1685,6 +1799,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             </form>
         </div>
     </div>
+
+    <div class="toast-container" id="toastContainer"></div>
 
     <footer class="app-footer">
         v1.0.01 &copy; 2026 AltiMaster
@@ -2068,7 +2184,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 console.log('AltChecks: Rendering token grid, element exists:', !!grid);
 
                 if (data.tokens && data.tokens.length > 0) {
-                    grid.innerHTML = data.tokens.map(t => renderTokenCard(t)).join('');
+                    grid.innerHTML = data.tokens.map((t, idx) => renderTokenCard(t, idx)).join('');
                 } else {
                     grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:40px;">No hay tokens activos</p>';
                 }
@@ -2166,7 +2282,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 const p = data.pair;
                 const profile = data.profile;
                 const iconUrl = profile?.icon || '';
-                const dexUrl = profile?.url || (p ? 'https://dexscreener.com/' + chainId + '/' + tokenAddress : '#');
+                const dexUrl = profile?.url || 'https://dexscreener.com/' + chainId + '/' + tokenAddress;
                 const description = profile?.description || '';
                 const links = data.links || [];
 
@@ -2248,14 +2364,15 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
         }
 
-        function renderTokenCard(t) {
+        function renderTokenCard(t, idx) {
             const precioEntrada = parseFloat(t.precio_entrada);
             const profit = precioEntrada > 0 ? ((parseFloat(t.precio_actual) - precioEntrada) / precioEntrada * 100) : 0;
             const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
             const profitLabel = profit >= 0 ? '+' : '';
+            const delay = (idx || 0) * 0.04;
 
             return `
-                <div class="token-card" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;">
+                <div class="token-card" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;animation-delay:${delay}s">
                     <div class="token-card-header">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div class="token-icon" id="token-icon-${t.id}">${(t.nombre || '?')[0]}</div>
@@ -2858,6 +2975,76 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             console.error('Lucide icons error:', e);
         }
         
+        // Mouse glow tracking
+        document.addEventListener('mousemove', e => {
+            document.documentElement.style.setProperty('--mouse-x', e.clientX + 'px');
+            document.documentElement.style.setProperty('--mouse-y', e.clientY + 'px');
+        });
+
+        // Particles background
+        (function() {
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0';
+            document.body.prepend(canvas);
+            const ctx = canvas.getContext('2d');
+            let p = [];
+            function sz() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', sz); sz();
+            for (let i = 0; i < 50; i++) p.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, r: Math.random() * 2 + 0.5 });
+            function anim() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                p.forEach((a, i) => {
+                    a.x += a.vx; a.y += a.vy;
+                    if (a.x < 0) a.x = canvas.width; if (a.x > canvas.width) a.x = 0;
+                    if (a.y < 0) a.y = canvas.height; if (a.y > canvas.height) a.y = 0;
+                    ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0,212,255,0.3)'; ctx.fill();
+                    for (let j = i + 1; j < p.length; j++) {
+                        const dx = p[j].x - a.x, dy = p[j].y - a.y, dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 100) { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(p[j].x, p[j].y); ctx.strokeStyle = `rgba(0,212,255,${0.05 * (1 - dist / 100)})`; ctx.lineWidth = 0.5; ctx.stroke(); }
+                    }
+                });
+                requestAnimationFrame(anim);
+            }
+            anim();
+        })();
+
+        // Mouse glow CSS injection
+        const glowStyle = document.createElement('style');
+        glowStyle.textContent = 'body::after{content:"";position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(600px at var(--mouse-x) var(--mouse-y),rgba(0,212,255,0.04),transparent);pointer-events:none;z-index:9999}';
+        document.head.appendChild(glowStyle);
+
+        // Toast system
+        window.showToast = function(message, type, subtitle) {
+            const container = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + (type || 'info');
+            t.innerHTML = message + (subtitle ? '<div class="toast-sub">' + subtitle + '</div>' : '');
+            container.appendChild(t);
+            setTimeout(() => { t.classList.add('toast-exit'); setTimeout(() => t.remove(), 300); }, 3500);
+        };
+
+        // Confetti on TP
+        window.showConfetti = function() {
+            const colors = ['#00ff88', '#00d4ff', '#ff006e', '#ffbe0b'];
+            const canvas = document.createElement('canvas');
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10001';
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let confetti = [];
+            for (let i = 0; i < 60; i++) {
+                confetti.push({ x: Math.random() * canvas.width, y: -20, w: Math.random() * 8 + 4, h: Math.random() * 4 + 2, c: colors[Math.floor(Math.random() * colors.length)], vx: (Math.random() - 0.5) * 4, vy: Math.random() * 3 + 2, r: Math.random() * 360 });
+            }
+            let frames = 0;
+            function tick() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confetti.forEach(c => { c.x += c.vx; c.y += c.vy; c.r += 5; ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.r * Math.PI / 180); ctx.fillStyle = c.c; ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h); ctx.restore(); });
+                if (++frames < 120) requestAnimationFrame(tick); else canvas.remove();
+            }
+            tick();
+        };
+
         console.log('AltChecks: Init complete');
     </script>
 </body>

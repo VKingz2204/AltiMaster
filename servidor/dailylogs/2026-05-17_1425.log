@@ -1,0 +1,451 @@
+[2026-05-17 14:25:16] SERVER | Starting AltChecks Server
+[2026-05-17 14:25:16] SERVER | DB connected: YES
+[2026-05-17 14:25:16] SEARCH | Launched background search
+[2026-05-17 14:25:16] MONITOR | [2026-05-17 14:25:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:21] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:25:21] MONITOR | [2026-05-17 14:25:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:26] SEARCH | Launched background search
+[2026-05-17 14:25:26] MONITOR | [2026-05-17 14:25:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:31] MONITOR | [2026-05-17 14:25:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:36] MONITOR | [2026-05-17 14:25:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:41] MONITOR | [2026-05-17 14:25:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:46] MONITOR | [2026-05-17 14:25:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:51] MONITOR | [2026-05-17 14:25:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:25:56] MONITOR | [2026-05-17 14:25:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:01] MONITOR | [2026-05-17 14:26:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:06] MONITOR | [2026-05-17 14:26:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:11] MONITOR | [2026-05-17 14:26:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:16] MONITOR | [2026-05-17 14:26:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:21] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:26:21] MONITOR | [2026-05-17 14:26:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:26] SEARCH | Launched background search
+[2026-05-17 14:26:26] MONITOR | [2026-05-17 14:26:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:31] MONITOR | [2026-05-17 14:26:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:36] MONITOR | [2026-05-17 14:26:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:41] MONITOR | [2026-05-17 14:26:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:46] MONITOR | [2026-05-17 14:26:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:51] MONITOR | [2026-05-17 14:26:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:26:56] MONITOR | [2026-05-17 14:26:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:01] MONITOR | [2026-05-17 14:27:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:06] MONITOR | [2026-05-17 14:27:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:11] MONITOR | [2026-05-17 14:27:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:16] MONITOR | [2026-05-17 14:27:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:21] MONITOR | [2026-05-17 14:27:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:26] MONITOR | [2026-05-17 14:27:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:32] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:27:32] MONITOR | [2026-05-17 14:27:32] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:37] SEARCH | Launched background search
+[2026-05-17 14:27:37] MONITOR | [2026-05-17 14:27:37] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:42] MONITOR | [2026-05-17 14:27:42] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:47] MONITOR | [2026-05-17 14:27:47] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:52] MONITOR | [2026-05-17 14:27:52] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:27:57] MONITOR | [2026-05-17 14:27:57] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:02] MONITOR | [2026-05-17 14:28:02] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:07] MONITOR | [2026-05-17 14:28:07] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:12] MONITOR | [2026-05-17 14:28:12] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:17] MONITOR | [2026-05-17 14:28:17] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:22] MONITOR | [2026-05-17 14:28:22] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:27] MONITOR | [2026-05-17 14:28:27] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:32] MONITOR | [2026-05-17 14:28:32] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:37] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:28:37] MONITOR | [2026-05-17 14:28:37] â³ Waiting for entry: 1 tokens...
+[2026-05-17 14:28:37] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:28:42] SEARCH | Launched background search
+[2026-05-17 14:28:42] MONITOR | [2026-05-17 14:28:42] â³ Waiting for entry: 1 tokens...
+[2026-05-17 14:28:42] [ENTRY] define solana (+11.61%, immediate entry)
+[2026-05-17 14:28:42] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:28:42]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:28:42] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:28:42] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:28:48] MONITOR | [2026-05-17 14:28:48] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:28:48]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:28:48] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:28:48] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:28:53] MONITOR | [2026-05-17 14:28:53] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:28:53]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:28:53] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:28:53] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:28:58] MONITOR | [2026-05-17 14:28:58] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:28:58]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:28:58] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:28:58] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:29:03] MONITOR | [2026-05-17 14:29:03] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:03]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:03] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:03] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:29:08] MONITOR | [2026-05-17 14:29:08] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:08]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:08] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:08] DEBUG: define solana | price=0.0003739 entrada=0.0003739
+[2026-05-17 14:29:13] MONITOR | [2026-05-17 14:29:13] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:13]   - define solana | price=0.000373900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:13] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:13] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:18] MONITOR | [2026-05-17 14:29:18] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:18]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:18] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:18] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:24] MONITOR | [2026-05-17 14:29:24] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:24]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:24] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:24] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:29] MONITOR | [2026-05-17 14:29:29] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:29]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:29] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:29] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:34] MONITOR | [2026-05-17 14:29:34] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:34]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:34] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:34] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:39] MONITOR | [2026-05-17 14:29:39] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:39]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:39] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:39] DEBUG: define solana | price=0.000363 entrada=0.0003739
+[2026-05-17 14:29:44] MONITOR | [2026-05-17 14:29:44] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:44]   - define solana | price=0.000363000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:44] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:44] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:29:49] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:29:49] MONITOR | [2026-05-17 14:29:49] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:49]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:49] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:49] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:29:54] SEARCH | Launched background search
+[2026-05-17 14:29:55] MONITOR | [2026-05-17 14:29:54] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:29:54]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:29:54] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:29:55] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:30:00] MONITOR | [2026-05-17 14:30:00] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:00]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:00] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:00] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:30:05] MONITOR | [2026-05-17 14:30:05] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:05]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:05] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:05] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:30:10] MONITOR | [2026-05-17 14:30:10] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:10]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:10] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:10] DEBUG: define solana | price=0.0003633 entrada=0.0003739
+[2026-05-17 14:30:15] MONITOR | [2026-05-17 14:30:15] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:15]   - define solana | price=0.000363300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:15] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:15] DEBUG: define solana | price=0.0003471 entrada=0.0003739
+[2026-05-17 14:30:21] MONITOR | [2026-05-17 14:30:20] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:20]   - define solana | price=0.000347100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:20] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:21] DEBUG: define solana | price=0.0003471 entrada=0.0003739
+[2026-05-17 14:30:26] MONITOR | [2026-05-17 14:30:26] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:26]   - define solana | price=0.000347100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:26] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:26] DEBUG: define solana | price=0.0003471 entrada=0.0003739
+[2026-05-17 14:30:31] MONITOR | [2026-05-17 14:30:31] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:31]   - define solana | price=0.000347100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:31] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:31] DEBUG: define solana | price=0.0003471 entrada=0.0003739
+[2026-05-17 14:30:36] MONITOR | [2026-05-17 14:30:36] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:36]   - define solana | price=0.000347100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:36] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:36] DEBUG: define solana | price=0.0003471 entrada=0.0003739
+[2026-05-17 14:30:41] MONITOR | [2026-05-17 14:30:41] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:41]   - define solana | price=0.000347100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:41] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:41] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:30:47] MONITOR | [2026-05-17 14:30:46] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:46]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:46] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:47] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:30:52] MONITOR | [2026-05-17 14:30:52] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:52]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:52] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:52] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:30:57] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:30:57] MONITOR | [2026-05-17 14:30:57] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:30:57]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:30:57] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:30:57] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:31:02] SEARCH | Launched background search
+[2026-05-17 14:31:02] MONITOR | [2026-05-17 14:31:02] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:02]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:02] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:02] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:31:07] MONITOR | [2026-05-17 14:31:07] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:07]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:07] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:07] DEBUG: define solana | price=0.0003529 entrada=0.0003739
+[2026-05-17 14:31:12] MONITOR | [2026-05-17 14:31:12] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:12]   - define solana | price=0.000352900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:12] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:12] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:18] MONITOR | [2026-05-17 14:31:17] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:17]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:17] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:18] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:23] MONITOR | [2026-05-17 14:31:23] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:23]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:23] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:23] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:28] MONITOR | [2026-05-17 14:31:28] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:28]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:28] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:28] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:33] MONITOR | [2026-05-17 14:31:33] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:33]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:33] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:33] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:38] MONITOR | [2026-05-17 14:31:38] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:38]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:38] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:38] DEBUG: define solana | price=0.0003716 entrada=0.0003739
+[2026-05-17 14:31:43] MONITOR | [2026-05-17 14:31:43] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:43]   - define solana | price=0.000371600000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:43] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:43] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:31:49] MONITOR | [2026-05-17 14:31:48] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:48]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:48] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:49] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:31:54] MONITOR | [2026-05-17 14:31:54] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:54]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:54] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:54] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:31:59] MONITOR | [2026-05-17 14:31:59] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:31:59]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:31:59] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:31:59] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:32:04] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:32:04] MONITOR | [2026-05-17 14:32:04] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:04]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:04] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:04] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:32:09] SEARCH | Launched background search
+[2026-05-17 14:32:09] MONITOR | [2026-05-17 14:32:09] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:09]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:09] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:09] DEBUG: define solana | price=0.0003581 entrada=0.0003739
+[2026-05-17 14:32:14] MONITOR | [2026-05-17 14:32:14] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:14]   - define solana | price=0.000358100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:14] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:14] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:20] MONITOR | [2026-05-17 14:32:19] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:19]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:19] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:20] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:25] MONITOR | [2026-05-17 14:32:25] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:25]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:25] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:25] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:30] MONITOR | [2026-05-17 14:32:30] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:30]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:30] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:30] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:35] MONITOR | [2026-05-17 14:32:35] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:35]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:35] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:35] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:40] MONITOR | [2026-05-17 14:32:40] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:40]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:40] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:40] DEBUG: define solana | price=0.000355 entrada=0.0003739
+[2026-05-17 14:32:45] MONITOR | [2026-05-17 14:32:45] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:45]   - define solana | price=0.000355000000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:45] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:45] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:32:51] MONITOR | [2026-05-17 14:32:50] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:50]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:50] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:51] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:32:56] MONITOR | [2026-05-17 14:32:56] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:32:56]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:32:56] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:32:56] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:33:01] MONITOR | [2026-05-17 14:33:01] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:01]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:01] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:01] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:33:06] MONITOR | [2026-05-17 14:33:06] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:06]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:06] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:06] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:33:11] MONITOR | [2026-05-17 14:33:11] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:11]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:11] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:11] DEBUG: define solana | price=0.0003653 entrada=0.0003739
+[2026-05-17 14:33:16] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:33:16] MONITOR | [2026-05-17 14:33:16] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:16]   - define solana | price=0.000365300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:16] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:16] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:21] SEARCH | Launched background search
+[2026-05-17 14:33:22] MONITOR | [2026-05-17 14:33:21] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:21]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:21] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:22] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:27] MONITOR | [2026-05-17 14:33:27] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:27]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:27] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:27] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:32] MONITOR | [2026-05-17 14:33:32] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:32]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:32] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:32] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:37] MONITOR | [2026-05-17 14:33:37] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:37]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:37] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:37] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:42] MONITOR | [2026-05-17 14:33:42] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:42]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:42] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:42] DEBUG: define solana | price=0.0003683 entrada=0.0003739
+[2026-05-17 14:33:48] MONITOR | [2026-05-17 14:33:47] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:47]   - define solana | price=0.000368300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:47] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:47] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:33:53] MONITOR | [2026-05-17 14:33:53] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:53]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:53] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:53] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:33:58] MONITOR | [2026-05-17 14:33:58] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:33:58]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:33:58] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:33:58] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:34:03] MONITOR | [2026-05-17 14:34:03] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:03]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:03] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:03] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:34:08] MONITOR | [2026-05-17 14:34:08] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:08]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:08] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:08] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:34:13] MONITOR | [2026-05-17 14:34:13] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:13]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:13] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:13] DEBUG: define solana | price=0.0003803 entrada=0.0003739
+[2026-05-17 14:34:19] MONITOR | [2026-05-17 14:34:18] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:18]   - define solana | price=0.000380300000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:18] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:18] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:24] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:34:24] MONITOR | [2026-05-17 14:34:24] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:24]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:24] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:24] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:29] SEARCH | Launched background search
+[2026-05-17 14:34:29] MONITOR | [2026-05-17 14:34:29] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:29]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:29] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:29] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:34] MONITOR | [2026-05-17 14:34:34] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:34]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:34] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:34] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:39] MONITOR | [2026-05-17 14:34:39] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:39]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:39] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:39] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:44] MONITOR | [2026-05-17 14:34:44] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:44]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:44] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:44] DEBUG: define solana | price=0.0003551 entrada=0.0003739
+[2026-05-17 14:34:49] MONITOR | [2026-05-17 14:34:49] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:49]   - define solana | price=0.000355100000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:49] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:49] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:34:55] MONITOR | [2026-05-17 14:34:54] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:34:54]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:34:54] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:34:55] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:35:00] MONITOR | [2026-05-17 14:35:00] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:35:00]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:35:00] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:35:00] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:35:05] MONITOR | [2026-05-17 14:35:05] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:35:05]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:35:05] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:35:05] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:35:10] MONITOR | [2026-05-17 14:35:10] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:35:10]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:35:10] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:35:10] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:35:15] MONITOR | [2026-05-17 14:35:15] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:35:15]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:35:15] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:35:15] DEBUG: define solana | price=0.0003679 entrada=0.0003739
+[2026-05-17 14:35:20] MONITOR | [2026-05-17 14:35:20] DEBUG MONITOREO: Found 1 monitoreo tokens
+[2026-05-17 14:35:20]   - define solana | price=0.000367900000000000 | entrada=0.000373900000000000
+[2026-05-17 14:35:20] ðŸ”„ Monitoring 1 tokens...
+[2026-05-17 14:35:20] DEBUG: define solana | price=0.0003307 entrada=0.0003739
+[2026-05-17 14:35:20] [SL] define solana (drop -13.04% from peak, SL: -8%)
+[2026-05-17 14:35:25] MONITOR | [2026-05-17 14:35:25] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:30] MONITOR | [2026-05-17 14:35:30] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:36] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:35:36] MONITOR | [2026-05-17 14:35:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:41] SEARCH | Launched background search
+[2026-05-17 14:35:41] MONITOR | [2026-05-17 14:35:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:46] MONITOR | [2026-05-17 14:35:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:51] MONITOR | [2026-05-17 14:35:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:35:56] MONITOR | [2026-05-17 14:35:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:01] MONITOR | [2026-05-17 14:36:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:06] MONITOR | [2026-05-17 14:36:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:11] MONITOR | [2026-05-17 14:36:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:16] MONITOR | [2026-05-17 14:36:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:21] MONITOR | [2026-05-17 14:36:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:26] MONITOR | [2026-05-17 14:36:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:31] MONITOR | [2026-05-17 14:36:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:36] MONITOR | [2026-05-17 14:36:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:41] MONITOR | [2026-05-17 14:36:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:46] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:36:46] MONITOR | [2026-05-17 14:36:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:51] SEARCH | Launched background search
+[2026-05-17 14:36:51] MONITOR | [2026-05-17 14:36:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:36:56] MONITOR | [2026-05-17 14:36:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:01] MONITOR | [2026-05-17 14:37:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:06] MONITOR | [2026-05-17 14:37:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:11] MONITOR | [2026-05-17 14:37:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:16] MONITOR | [2026-05-17 14:37:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:21] MONITOR | [2026-05-17 14:37:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:26] MONITOR | [2026-05-17 14:37:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:31] MONITOR | [2026-05-17 14:37:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:36] MONITOR | [2026-05-17 14:37:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:41] MONITOR | [2026-05-17 14:37:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:46] MONITOR | [2026-05-17 14:37:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:51] MONITOR | [2026-05-17 14:37:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:37:56] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:37:56] MONITOR | [2026-05-17 14:37:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:01] SEARCH | Launched background search
+[2026-05-17 14:38:01] MONITOR | [2026-05-17 14:38:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:06] MONITOR | [2026-05-17 14:38:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:11] MONITOR | [2026-05-17 14:38:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:16] MONITOR | [2026-05-17 14:38:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:21] MONITOR | [2026-05-17 14:38:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:26] MONITOR | [2026-05-17 14:38:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:31] MONITOR | [2026-05-17 14:38:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:36] MONITOR | [2026-05-17 14:38:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:41] MONITOR | [2026-05-17 14:38:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:46] MONITOR | [2026-05-17 14:38:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:51] MONITOR | [2026-05-17 14:38:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:38:56] MONITOR | [2026-05-17 14:38:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:01] MONITOR | [2026-05-17 14:39:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:06] MONITOR | [2026-05-17 14:39:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:11] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:39:11] MONITOR | [2026-05-17 14:39:11] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:16] SEARCH | Launched background search
+[2026-05-17 14:39:16] MONITOR | [2026-05-17 14:39:16] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:21] MONITOR | [2026-05-17 14:39:21] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:26] MONITOR | [2026-05-17 14:39:26] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:31] MONITOR | [2026-05-17 14:39:31] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:36] MONITOR | [2026-05-17 14:39:36] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:41] MONITOR | [2026-05-17 14:39:41] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:46] MONITOR | [2026-05-17 14:39:46] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:51] MONITOR | [2026-05-17 14:39:51] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:39:56] MONITOR | [2026-05-17 14:39:56] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:01] MONITOR | [2026-05-17 14:40:01] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:06] MONITOR | [2026-05-17 14:40:06] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:12] MONITOR | [2026-05-17 14:40:12] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:17] MONITOR | [2026-05-17 14:40:17] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:22] SEARCH | Search completed, countdown 5s
+[2026-05-17 14:40:22] MONITOR | [2026-05-17 14:40:22] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:27] SEARCH | Launched background search
+[2026-05-17 14:40:27] MONITOR | [2026-05-17 14:40:27] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:32] MONITOR | [2026-05-17 14:40:32] DEBUG MONITOREO: Found 0 monitoreo tokens
+[2026-05-17 14:40:37] MONITOR | [2026-05-17 14:40:37] DEBUG MONITOREO: Found 0 monitoreo tokens

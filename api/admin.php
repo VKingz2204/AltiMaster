@@ -266,15 +266,17 @@ if ($method === 'POST') {
                 exit;
             }
             
+            $stmt = $pdo->prepare("SELECT token_address, pair_address, chain_id, nombre FROM historial_tokens WHERE id = ?");
+            $stmt->execute([$input['historial_id']]);
+            $h = $stmt->fetch();
+            if ($h) {
+                adminBanearToken($pdo, $h['token_address'], $h['pair_address'], $h['chain_id'], 'Banned for admin');
+            }
+            
             $stmt = $pdo->prepare("DELETE FROM historial_tokens WHERE id = ?");
             $stmt->execute([$input['historial_id']]);
             
             echo json_encode(['success' => true, 'message' => 'Token baneado del historial']);
-            break;
-
-            logSistema('info', 'Configuración actualizada', $input);
-
-            echo json_encode(['success' => true, 'message' => 'Configuración actualizada']);
             break;
 
         case 'insertar_token_manual':
@@ -326,6 +328,13 @@ if ($method === 'POST') {
                 exit;
             }
             $tokenData = obtenerDatosToken($token['chain_id'], $token['token_address']);
+            if (!$tokenData || !isset($tokenData[0])) {
+                $searchResp = fetchWithCurl("https://api.dexscreener.com/latest/dex/search?q=" . urlencode($token['token_address']));
+                $searchData = $searchResp ? json_decode($searchResp, true) : null;
+                if ($searchData && isset($searchData['pairs'][0])) {
+                    $tokenData = $searchData['pairs'];
+                }
+            }
             $precioActual = (float)(($tokenData[0]['priceUsd'] ?? 0) ?: $token['precio_actual']);
             $precioEntrada = (float)$token['precio_entrada'];
             $cambio = $precioEntrada > 0 ? round((($precioActual / $precioEntrada) - 1) * 100, 2) : 0;
@@ -372,6 +381,36 @@ function manualExitToken($pdo, $token, $precioSalida, $profit) {
         $token['es_reentry'], $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb
     ]);
     logSistema('info', 'Token exited manually: ' . $token['nombre'], ['id' => $token['id'], 'profit' => $profit . '%']);
+}
+
+function fetchWithCurl($url, $timeout = 10) {
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    ]);
+    $result = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($httpCode !== 200) return null;
+    return $result;
+}
+
+function adminBanearToken($pdo, $tokenAddress, $pairAddress, $chainId, $razon) {
+    try {
+        $stmt = $pdo->prepare("SELECT 1 FROM tokens_banned WHERE pair_address = ? AND chain_id = ?");
+        $stmt->execute([$pairAddress, $chainId]);
+        if (!$stmt->fetch()) {
+            $pdo->prepare("INSERT INTO tokens_banned (token_address, pair_address, chain_id, razon, banneado_en) VALUES (?, ?, ?, ?, NOW())")
+                ->execute([$tokenAddress, $pairAddress, $chainId, $razon]);
+        }
+    } catch (PDOException $e) {
+        // Silently handle - ban is best-effort
+    }
 }
 
 http_response_code(405);

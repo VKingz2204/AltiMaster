@@ -80,7 +80,8 @@ try { $pdo->exec("ALTER TABLE tokens MODIFY precio_15_peak DECIMAL(30,18) DEFAUL
 try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_entrada DECIMAL(30,18)"); print_line("    • historial_tokens: precio_entrada precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_entrada precision OK", 'dim'); }
 try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_descubrimiento DECIMAL(30,18) DEFAULT 0"); print_line("    • historial_tokens: precio_descubrimiento precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_descubrimiento precision OK", 'dim'); }
 try { $pdo->exec("ALTER TABLE historial_tokens MODIFY precio_salida DECIMAL(30,18)"); print_line("    • historial_tokens: precio_salida precision updated", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: precio_salida precision OK", 'dim'); }
-
+try { $pdo->exec("ALTER TABLE tokens ADD COLUMN confirmacion_count INT DEFAULT 0"); print_line("    • tokens: confirmacion_count column added", 'success'); } catch (PDOException $e) { print_line("    • tokens: confirmacion_count column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE coins_tags ADD COLUMN inestable_count INT DEFAULT 0"); print_line("    • coins_tags: inestable_count column added", 'success'); } catch (PDOException $e) { print_line("    • coins_tags: inestable_count column OK", 'dim'); }
 // Migrate existing users (safe if table doesn't exist yet)
 try { $pdo->exec("UPDATE usuarios SET is_admin = 1 WHERE nivel = 'admin' AND (is_admin IS NULL OR is_admin = 0)"); } catch (PDOException $e) {}
 try { $pdo->exec("UPDATE usuarios SET plan = 'ultra' WHERE nivel = 'admin' AND (plan IS NULL OR plan = 'basic')"); } catch (PDOException $e) {}
@@ -122,6 +123,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tokens (
     es_reentry BOOLEAN DEFAULT FALSE, reentry_count INT DEFAULT 0,
     checks_count INT DEFAULT 0, laps INT DEFAULT 0, timeout_count INT DEFAULT 0,
     tag VARCHAR(20) DEFAULT NULL,
+    confirmacion_count INT DEFAULT 0,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP, fecha_ingreso DATETIME DEFAULT NULL,
     fecha_salida DATETIME DEFAULT NULL, primer_check DATETIME DEFAULT NULL,
     ultimo_check DATETIME DEFAULT NULL, creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -164,8 +166,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS coins_tags (
     nombre_normalizado VARCHAR(100) NOT NULL UNIQUE,
     strong_count INT DEFAULT 0,
     destroyed_count INT DEFAULT 0,
+    caution_count INT DEFAULT 0,
     checking_count INT DEFAULT 0,
-    okay_count INT DEFAULT 0,
+    okay_count INT DEFAULT 0, inestable_count INT DEFAULT 0,
     ultimo_tag VARCHAR(20) DEFAULT NULL,
     actualizado_en DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_nombre (nombre_normalizado)

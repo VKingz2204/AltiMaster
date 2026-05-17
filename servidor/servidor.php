@@ -524,7 +524,7 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
         $precioActual = (float)($pairData['priceUsd'] ?? 0);
         if ($precioActual <= 0) continue;
 
-        logCoinData($token['nombre'], $token['pair_address'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['txns'] ?? []);
+        logCoinData($token['nombre'], $token['pair_address'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['txns'] ?? []);
         
         $precioEntrada = (float)$token['precio_entrada'];
         $cambio = (($precioActual / $precioEntrada) - 1) * 100;
@@ -539,7 +539,7 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
                 registrarCoinRevisada(
                     $pdo, $token['pair_address'], $token['chain_id'],
                     $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                    $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                     $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                     $pairData['priceChange']['h24'] ?? 0,
                     'ban', 'Nombre baneado (2x CAUTION)'
@@ -569,7 +569,7 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
             registrarCoinRevisada(
                 $pdo, $token['pair_address'], $token['chain_id'],
                 $token['nombre'], $precioActual,
-                $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                 $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                 $pairData['priceChange']['h24'] ?? 0,
                 'entrada', 'Token entrÃ³ a monitoreo (+' . round($cambio, 2) . '% entrada inmediata)'
@@ -596,7 +596,7 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
                 registrarCoinRevisada(
                     $pdo, $token['pair_address'], $token['chain_id'],
                     $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                    $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                     $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                     $pairData['priceChange']['h24'] ?? 0,
                     'entrada', 'Token entrÃ³ a monitoreo (+' . round($cambio, 2) . '% por ' . $newCount . ' ciclos)'
@@ -621,7 +621,7 @@ function monitoreoTokensActivos($pdo, $intervalo, $tpPorcentaje, $tpReentry, $sl
                 registrarCoinRevisada(
                     $pdo, $token['pair_address'], $token['chain_id'],
                     $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                    $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                     $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                     $pairData['priceChange']['h24'] ?? 0,
                     'timeout', 'Sin actividad'
@@ -661,7 +661,7 @@ foreach ($tokens as $token) {
     $precioActual = (float)($pairData['priceUsd'] ?? 0);
     if ($precioActual <= 0) continue;
 
-    logCoinData($token['nombre'], $token['pair_address'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['txns'] ?? []);
+    logCoinData($token['nombre'], $token['pair_address'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['txns'] ?? []);
 
     $precioEntrada = (float)$token['precio_entrada'];
     $precioCrash = $token['precio_crash'] ? (float)$token['precio_crash'] : null;
@@ -706,7 +706,7 @@ foreach ($tokens as $token) {
                     registrarCoinRevisada(
                         $pdo, $token['pair_address'], $token['chain_id'],
                         $token['nombre'], $precioActual,
-                        $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                        $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                         $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                         $pairData['priceChange']['h24'] ?? 0,
                         'tp', 'Take Profit: +' . round($cambioDesdeEntrada, 2) . '%'
@@ -725,7 +725,7 @@ foreach ($tokens as $token) {
                 // Fast TP mode: save TP if drops below +30%
                 if ($cambioDesdeEntrada < 30) {
                     try {
-                        registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'save_tp', 'Save TP rÃ¡pido: bajo +30%');
+                        registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'save_tp', 'Save TP rÃ¡pido: bajo +30%');
                         marcarExit($pdo, $token['id'], $precioActual, 'save_tp', $cambio);
                     } catch (Exception $e) { echo "[" . date('Y-m-d H:i:s') . "] ERROR SAVE TP: " . $e->getMessage() . "\n"; }
                     echo "[" . date('Y-m-d H:i:s') . "] [SAVE TP] " . $token['nombre'] . " (bajo +30% en modo rÃ¡pido)\n";
@@ -734,7 +734,7 @@ foreach ($tokens as $token) {
             } elseif ($precioMaximo > 0 && $precioActual < $precioMaximo && $cambioDesdePeak <= $slDesdePeak) {
                 $razonSalida = ($cambio > 0) ? 'save_tp' : 'sl';
                 try {
-                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $razonSalida, 'Save TP / Stop Loss');
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $razonSalida, 'Save TP / Stop Loss');
                     marcarExit($pdo, $token['id'], $precioActual, $razonSalida, $cambio);
                 } catch (Exception $e) { echo "[" . date('Y-m-d H:i:s') . "] ERROR SL: " . $e->getMessage() . "\n"; }
                 echo "[" . date('Y-m-d H:i:s') . "] [SL] " . $token['nombre'] . " (drop " . round($cambioDesdePeak, 2) . "% from peak, SL: $slDesdePeak%)\n";
@@ -747,7 +747,7 @@ foreach ($tokens as $token) {
             try {
                 updateTagCounts($pdo, $token['nombre'], '[I]NESTABLE');
                 banearToken($pdo, $token['token_address'], $token['pair_address'], $token['chain_id'], 'Inestable');
-                registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'sl', '-9% desde entrada');
+                registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'sl', '-9% desde entrada');
                 marcarExit($pdo, $token['id'], $precioActual, 'inestable', $cambio);
             } catch (Exception $e) { echo "[" . date('Y-m-d H:i:s') . "] ERROR -9%: " . $e->getMessage() . "\n"; }
             echo "[" . date('Y-m-d H:i:s') . "] [INESTABLE] " . $token['nombre'] . " (" . round($cambio, 2) . "% desde entrada)\n";
@@ -760,7 +760,7 @@ foreach ($tokens as $token) {
                 registrarCoinRevisada(
                     $pdo, $token['pair_address'], $token['chain_id'],
                     $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                    $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                     $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                     $pairData['priceChange']['h24'] ?? 0,
                     'exit', 'LÃ­mite de 60 minutos de monitoreo alcanzado'
@@ -777,7 +777,7 @@ foreach ($tokens as $token) {
             registrarCoinRevisada(
                 $pdo, $token['pair_address'], $token['chain_id'],
                 $token['nombre'], $precioActual,
-                $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
+                $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
                 $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
                 $pairData['priceChange']['h24'] ?? 0,
                 'actualizado', 'Check #' . ($token['checks_count'] + 1)
@@ -788,7 +788,7 @@ foreach ($tokens as $token) {
                     $precioActual,
                     $precioMaximo,
                     $pairData['marketCap'] ?? 0,
-                    $pairData['liquidez']['usd'] ?? 0,
+                    $pairData['liquidity']['usd'] ?? 0,
                     $pairData['priceChange']['h1'] ?? 0,
                     $pairData['priceChange']['h6'] ?? 0,
                     $pairData['priceChange']['h24'] ?? 0,

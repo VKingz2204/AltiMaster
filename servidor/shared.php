@@ -468,6 +468,18 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         ':monto_inv' => $montoInvertido ?: null,
         ':profit_dol' => $profitDolares ?: null
     ]);
+
+    if ($profitDolares < 0) {
+        try {
+            $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares)
+                VALUES (?, DATE_ADD(NOW(), INTERVAL 24 HOUR), ?)
+                ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(NOW(), INTERVAL 24 HOUR), profit_dolares = ?")
+                ->execute([$token['pair_address'], $profitDolares, $profitDolares]);
+            echo "[" . date('Y-m-d H:i:s') . "] COOLDOWN: " . $token['nombre'] . " blocked for 24h (negative exit: \${$profitDolares})\n";
+        } catch (Exception $e) {
+            echo "[" . date('Y-m-d H:i:s') . "] COOLDOWN ERROR: " . $e->getMessage() . "\n";
+        }
+    }
 }
 
 function actualizarTokenFree($pdo, $nuevoTokenId) {

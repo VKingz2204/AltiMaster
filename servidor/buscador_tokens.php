@@ -80,6 +80,10 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             $stmt->execute([$pair]);
             if ($stmt->fetch()) continue;
 
+            $stmt = $pdo->prepare("SELECT id FROM token_cooldowns WHERE pair_address = ? AND cooldown_until > NOW()");
+            $stmt->execute([$pair]);
+            if ($stmt->fetch()) continue;
+
             $stmt = $pdo->prepare("SELECT id FROM tokens WHERE pair_address = ? AND estado != 'exit'");
             $stmt->execute([$pair]);
             if ($stmt->fetch()) continue;

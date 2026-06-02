@@ -453,6 +453,17 @@ function manualExitToken($pdo, $token, $precioSalida, $profit) {
         $montoInvertido ?: null, $profitDolares ?: null
     ]);
     logSistema('info', 'Token exited manually: ' . $token['nombre'], ['id' => $token['id'], 'profit' => $profit . '%']);
+
+    if ($profitDolares < 0) {
+        try {
+            $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares)
+                VALUES (?, DATE_ADD(NOW(), INTERVAL 24 HOUR), ?)
+                ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(NOW(), INTERVAL 24 HOUR), profit_dolares = ?")
+                ->execute([$token['pair_address'], $profitDolares, $profitDolares]);
+        } catch (PDOException $e) {
+            // Silently handle
+        }
+    }
 }
 
 function adminBanearToken($pdo, $tokenAddress, $pairAddress, $chainId, $razon, $nombre = null) {

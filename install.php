@@ -290,6 +290,17 @@ try { $pdo->exec("CREATE TABLE IF NOT EXISTS wallet_daily_snapshot (
     creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"); print_line("    • wallet_daily_snapshot", 'success'); } catch (PDOException $e) { print_line("    • wallet_daily_snapshot: " . $e->getMessage(), 'error'); }
 
+// token_cooldowns table (24h cooldown for negative exits)
+try { $pdo->exec("CREATE TABLE IF NOT EXISTS token_cooldowns (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pair_address VARCHAR(100) NOT NULL UNIQUE,
+    cooldown_until DATETIME NOT NULL,
+    profit_dolares DECIMAL(15,2) NOT NULL,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_cooldown (cooldown_until),
+    INDEX idx_pair (pair_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"); print_line("    • token_cooldowns", 'success'); } catch (PDOException $e) { print_line("    • token_cooldowns: " . $e->getMessage(), 'error'); }
+
 step_end();
 
 step(3, "Ensuring default data...");

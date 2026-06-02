@@ -361,3 +361,15 @@ ALTER TABLE tokens_banned ADD COLUMN IF NOT EXISTS nombre VARCHAR(100) DEFAULT N
 ALTER TABLE tokens_banned DROP INDEX unique_token;
 ALTER TABLE tokens_banned ADD UNIQUE KEY unique_token (token_address, chain_id);
 
+-- Tabla: token_cooldowns (24h cooldown for negative-profit exits)
+
+CREATE TABLE IF NOT EXISTS token_cooldowns (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pair_address VARCHAR(100) NOT NULL UNIQUE,
+    cooldown_until DATETIME NOT NULL,
+    profit_dolares DECIMAL(15,2) NOT NULL,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_cooldown (cooldown_until),
+    INDEX idx_pair (pair_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

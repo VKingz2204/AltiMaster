@@ -11,7 +11,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AltChecks - Token Monitoring System</title>
+    <title>AltiChecker - Token Monitoring System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -28,16 +28,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             --text-primary: #f0f4ff;
             --text-muted: #6b7294;
             --border-color: rgba(0, 212, 255, 0.15);
-
             --success: #00ff88;
             --warning: #ffbe0b;
             --error: #ff0054;
-            --free: #ffbe0b;
-            --vip: #00ff88;
+            --glass-bg: rgba(18, 18, 37, 0.6);
+            --glass-border: rgba(0, 212, 255, 0.1);
+            --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
             --admin: #00d4ff;
-
-            --neon-glow: 0 0 20px rgba(0, 212, 255, 0.3);
-            --neon-pink: 0 0 20px rgba(255, 0, 110, 0.3);
         }
 
         * {
@@ -75,10 +72,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         h3 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); }
         h4 { font-size: clamp(1.1rem, 2vw, 1.35rem); }
 
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
         p, label, input, textarea, select {
             font-family: 'DM Sans', sans-serif;
         }
@@ -87,40 +80,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             display: inline-flex;
             align-items: center;
             vertical-align: middle;
-        }
-
-        .icon-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .glass {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .glass:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
-        }
-
-        .card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
         }
 
         /* Login */
@@ -183,69 +142,36 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             padding: 14px 16px;
             background: rgba(20, 26, 61, 0.6);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            border: 1px solid var(--glass-border);
             border-radius: 10px;
             color: var(--text-primary);
             font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: rgba(0, 212, 255, 0.5);
-            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 25px rgba(0, 212, 255, 0.15);
-        }
-
-        .form-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .btn {
-            padding: 10px 22px;
-            border: none;
+        .form-group textarea {
+            padding: 14px 16px;
+            background: rgba(20, 26, 61, 0.4);
+            border: 1px solid var(--glass-border);
             border-radius: 10px;
+            color: var(--text-primary);
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
             width: 100%;
+            resize: vertical;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #00d4ff, #ff006e);
-            background-size: 200% 200%;
-            color: #fff;
-            animation: shimmer 3s linear infinite;
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-primary);
         }
 
-        .btn-primary:hover {
-            box-shadow: 0 0 25px rgba(0, 212, 255, 0.3), 0 0 50px rgba(255, 0, 110, 0.15);
-            transform: scale(1.03);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.97);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--accent-primary);
-            color: var(--text-primary);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(0, 212, 255, 0.1);
-        }
-
+        /* Login extras */
         .login-error {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px solid var(--error);
             color: var(--error);
-            padding: 12px;
+            background: rgba(255, 0, 84, 0.1);
+            border: 1px solid rgba(255, 0, 84, 0.2);
             border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 13px;
             display: none;
         }
 
@@ -256,18 +182,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             color: var(--text-muted);
         }
 
-        .app-footer {
-            text-align: center;
-            padding: 16px 24px;
-            font-size: 12px;
-            color: var(--text-muted);
-            border-top: 1px solid rgba(79, 70, 229, 0.1);
-            margin-top: 24px;
-        }
-
-        .hidden { display: none !important; }
-
-        /* Dashboard */
+        /* Dashboard Layout */
         .dashboard {
             display: none;
             min-height: 100vh;
@@ -277,58 +192,49 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             display: block;
         }
 
-        /* Header */
         .header {
-            background: rgba(7, 7, 18, 0.8);
-            backdrop-filter: blur(20px) saturate(1.5);
-            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-            padding: 16px 24px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border-bottom: 1px solid var(--glass-border);
             position: sticky;
             top: 0;
             z-index: 100;
-            animation: pulseGlow 4s ease-in-out infinite;
         }
 
         .header-logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .header-logo h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 2px;
             background: var(--accent-gradient);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: shimmer 3s linear infinite;
-        }
-
-        .header-logo .icon {
-            font-size: 24px;
         }
 
         .header-info {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
+        /* Server Status */
         .server-status {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 13px;
-            padding: 8px 12px;
-            background: var(--bg-surface);
-            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .server-status .dot {
@@ -336,179 +242,137 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             height: 8px;
             border-radius: 50%;
             background: var(--error);
+            transition: background 0.3s;
         }
 
         .server-status.active .dot {
             background: var(--success);
-            box-shadow: 0 0 8px var(--success);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
         }
 
+        /* User Badge */
         .user-badge {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 16px;
-            background: var(--bg-surface);
-            border-radius: 8px;
+            gap: 8px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
         }
 
         .user-badge .username {
-            font-weight: 500;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
-        .user-badge .level {
-            font-size: 12px;
-            padding: 4px 10px;
+        .level {
+            padding: 2px 10px;
             border-radius: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
         }
 
-        .level-1 { background: #666; color: #fff; }
-        .level-2 { background: var(--accent-primary); color: #fff; }
-        .level-3 { background: var(--success); color: #000; }
-        .level-admin { background: var(--admin); color: #fff; }
-        .level-free, .level-vip { display: none; }
+        .level-free { background: #666; color: #fff; }
+        .level-pro { background: var(--accent-primary); color: #070712; }
+        .level-admin { background: var(--admin); color: #070712; }
 
+        /* Refresh Button */
+        .btn-refresh {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-refresh.spinning svg {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Logout */
         .btn-logout {
-            padding: 10px 22px;
+            padding: 8px 18px;
             background: transparent;
             border: 1px solid var(--error);
             color: var(--error);
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             transition: all 0.25s ease;
         }
 
         .btn-logout:hover {
-            background: var(--error);
-            color: white;
-            box-shadow: 0 0 18px rgba(255, 71, 87, 0.45);
-            transform: scale(1.03);
-        }
-
-        .btn-logout:active {
-            transform: scale(0.97);
+            background: rgba(255, 0, 84, 0.15);
+            box-shadow: 0 0 12px rgba(255, 0, 84, 0.3);
         }
 
         /* Navigation */
         .nav-tabs {
             display: flex;
-            gap: 4px;
-            padding: 16px 24px;
-            background: rgba(10, 13, 26, 0.85);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+            gap: 6px;
+            padding: 12px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border-bottom: 1px solid var(--glass-border);
             overflow-x: auto;
         }
 
         .nav-tab {
-            padding: 12px 20px;
+            padding: 8px 20px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
             background: transparent;
-            border: none;
             color: var(--text-muted);
-            font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
-            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             transition: all 0.25s ease;
             white-space: nowrap;
         }
 
         .nav-tab:hover {
-            background: var(--bg-surface);
-            color: var(--text-primary);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
         }
 
         .nav-tab.active {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 0, 110, 0.2));
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-            color: #fff;
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
         }
 
         /* Main Content */
         .main-content {
-            padding: 48px;
+            padding: 24px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
-.section {
+        /* Section Visibility */
+        .section {
             display: none;
-            padding: 48px 0;
         }
 
         .section.active {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 24px;
-            }
-            .section {
-                padding: 24px 0;
-            }
-        }
-
-        /* Scroll entrance animations */
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Disclaimer */
-        .disclaimer {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .disclaimer:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
-        }
-
-        .disclaimer h3 {
-            color: var(--warning);
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .disclaimer ul {
-            font-size: 13px;
-            color: var(--text-muted);
-            padding-left: 20px;
-        }
-
-        .disclaimer li {
-            margin-bottom: 4px;
-        }
-
-        /* Cards */
+        /* Section Title */
         .section-title {
             font-size: 20px;
             font-weight: 600;
@@ -516,6 +380,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             display: flex;
             align-items: center;
             gap: 12px;
+            color: var(--text-primary);
         }
 
         .section-title .count {
@@ -526,28 +391,28 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             color: var(--text-muted);
         }
 
+        /* Tokens Grid */
         .tokens-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 16px;
-            margin-bottom: 32px;
         }
 
+        /* Token Card */
         .token-card {
-            background: rgba(18, 18, 37, 0.6);
+            background: var(--glass-bg);
             backdrop-filter: blur(16px) saturate(1.2);
-            border: 1px solid rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            cursor: pointer;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             animation: slideIn 0.4s ease forwards;
         }
 
         .token-card:hover {
             transform: translateY(-6px);
-            border-color: rgba(0, 212, 255, 0.4);
+            border-color: rgba(0, 212, 255, 0.35);
             box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
@@ -560,232 +425,102 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         .token-name {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
         .token-symbol {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .chain-badge {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .chain-solana { background: #9945FF; color: white; }
-        .chain-ethereum { background: #627EEA; color: white; }
-        .chain-base { background: #0052FF; color: white; }
-        .chain-arbitrum { background: #28A0F0; color: white; }
-        .chain-bsc { background: #F3BA2F; color: white; }
-
-        .token-price {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 12px 0;
-        }
-
-        .token-change {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 12px;
-        }
-
-        .token-change span {
-            font-size: 13px;
-        }
-
-        .positive { color: var(--success); }
-        .negative { color: var(--error); }
-
-        .token-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
             font-size: 12px;
             color: var(--text-muted);
-            margin-bottom: 16px;
+            margin-top: 2px;
         }
 
-        .token-stats div {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .token-address {
+        .token-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--bg-primary);
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--text-muted);
         }
 
-        .token-address span {
-            overflow: hidden;
-            text-overflow: ellipsis;
+        /* Chain Badge */
+        .chain-badge {
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             white-space: nowrap;
-            flex: 1;
         }
 
-        .btn-copy {
-            background: var(--bg-surface);
+        .chain-solana { background: rgba(153, 69, 255, 0.2); color: #9945ff; }
+        .chain-ethereum { background: rgba(98, 126, 234, 0.2); color: #627eea; }
+        .chain-base { background: rgba(0, 82, 255, 0.2); color: #0052ff; }
+        .chain-arbitrum { background: rgba(40, 160, 240, 0.2); color: #28a0f0; }
+        .chain-bsc { background: rgba(243, 186, 47, 0.2); color: #f3ba2f; }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
             border: none;
-            color: var(--accent-primary);
-            padding: 6px 10px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn-copy:hover {
-            background: var(--accent-primary);
-            color: white;
-            box-shadow: 0 0 18px rgba(124, 58, 237, 0.45);
-            transform: scale(1.03);
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #070712;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
         }
 
-        .btn-copy:active {
-            transform: scale(0.97);
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            transform: translateY(-1px);
         }
 
-        .token-status {
-            margin-top: 12px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            text-align: center;
-            font-weight: 500;
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
         }
 
-        .status-monitoring { background: rgba(123, 92, 255, 0.2); color: var(--accent-primary); }
-        .status-new { background: rgba(0, 217, 126, 0.2); color: var(--success); }
-
-        /* Free User Token */
-        .free-token-container {
-            max-width: 500px;
-            margin: 0 auto;
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-primary);
         }
 
-        .free-token-card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 2px solid var(--warning);
+        /* Table Wrapper */
+        .table-wrapper {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 32px;
-            text-align: center;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .free-token-card:hover {
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
-        }
-
-        .free-token-card .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .free-token-card .name {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .free-token-card .chain {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-        }
-
-        .free-token-details {
-            background: var(--bg-primary);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .free-token-details .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .free-token-details .row:last-child {
-            border-bottom: none;
-        }
-
-        .free-token-details .label {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .free-token-details .value {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .tiempo-restante {
-            background: rgba(255, 214, 102, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .tiempo-restante .label {
-            font-size: 14px;
-            color: var(--warning);
-            margin-bottom: 8px;
-        }
-
-        .tiempo-restante .time {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--warning);
-        }
-
-        .upgrade-banner {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            border-radius: 12px;
-            padding: 24px;
-            margin-top: 24px;
-            text-align: center;
-        }
-
-        .upgrade-banner h3 {
-            margin-bottom: 8px;
-        }
-
-        .upgrade-banner p {
-            font-size: 14px;
-            opacity: 0.9;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
         }
 
         /* Historial Table */
         .historial-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--bg-surface);
-            border-radius: 12px;
-            overflow: hidden;
         }
 
         .historial-table th,
         .historial-table td {
             padding: 14px 16px;
             text-align: left;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .historial-table th {
@@ -798,113 +533,80 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .historial-table tr:hover {
-            background: rgba(79, 70, 229, 0.08);
+            background: rgba(0, 212, 255, 0.06);
         }
 
         .hist-date-header td {
             cursor: pointer;
-            background: rgba(79, 70, 229, 0.06);
+            background: rgba(0, 212, 255, 0.06);
             font-weight: 600;
             font-size: 14px;
         }
 
         .hist-date-header:hover td {
-            background: rgba(79, 70, 229, 0.12);
+            background: rgba(0, 212, 255, 0.12);
         }
 
-        .hist-date-header .hist-toggle {
-            display: inline-block;
-            width: 16px;
-            text-align: center;
-            font-size: 11px;
+        /* Disclaimer */
+        .disclaimer {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .disclaimer:hover {
+            border-color: rgba(0, 212, 255, 0.35);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.18), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .disclaimer ul {
+            font-size: 13px;
             color: var(--text-muted);
+            padding-left: 20px;
         }
 
-        .profit-positive {
-            color: #22c55e;
-            background: rgba(34, 197, 94, 0.12);
-            padding: 2px 10px;
-            border-radius: 999px;
-            display: inline-block;
-            font-weight: 600;
+        .disclaimer li {
+            margin-bottom: 4px;
         }
 
-        .profit-negative {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.12);
-            padding: 2px 10px;
-            border-radius: 999px;
-            display: inline-block;
-            font-weight: 600;
+        /* Footer */
+        .app-footer {
+            text-align: center;
+            padding: 16px 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--glass-border);
+            margin-top: 24px;
         }
 
-        .profit-badge {
-            font-size: 0.75rem;
-            padding: 2px 10px;
-            border-radius: 999px;
-            margin-left: 8px;
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Scroll Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 12px;
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .table-wrapper thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .table-wrapper th {
-            background: #0f1535;
-        }
-
-        .table-wrapper tbody tr:nth-child(odd) {
-            background: rgba(20, 26, 61, 0.5);
-        }
-
-        .table-wrapper tbody tr:nth-child(even) {
-            background: rgba(20, 26, 61, 0.3);
-        }
-
-        .table-wrapper tbody tr:hover {
-            background: rgba(79, 70, 229, 0.08);
-        }
-
-        .table-wrapper td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
-        }
-
-        @media (max-width: 640px) {
-            .table-wrapper thead {
-                display: none;
-            }
-            .table-wrapper tbody tr {
-                display: block;
-                background: rgba(20, 26, 61, 0.85);
-                border-radius: 12px;
-                margin-bottom: 12px;
-                padding: 12px 16px;
-                border: 1px solid rgba(79, 70, 229, 0.15);
-            }
-            .table-wrapper td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 6px 0;
-                border: none;
-                font-size: 0.875rem;
-            }
-            .table-wrapper td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #8892b0;
-                margin-right: 12px;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .profit-badge.profit-positive {
@@ -917,14 +619,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             color: var(--error);
         }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
+        .profit-positive { color: var(--success); }
+        .profit-negative { color: var(--error); }
+        .text { color: inherit; }
+        .hist-toggle { display: inline-block; width: 16px; text-align: center; font-size: 11px; color: var(--text-muted); }
 
+        /* Stats Grid */
+        .stats-grid,
         .admin-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -933,13 +634,18 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .api-key-card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .api-key-card:hover {
+            border-color: rgba(0, 212, 255, 0.35);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.18), 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .api-key-card .key-display {
@@ -969,7 +675,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         .criteria-field {
             background: rgba(20, 26, 61, 0.4);
-            border: 1px solid rgba(79, 70, 229, 0.1);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 14px;
         }
@@ -986,7 +692,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .criteria-field input {
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(79, 70, 229, 0.2);
+            border: 1px solid var(--glass-border);
             border-radius: 6px;
             padding: 8px 10px;
             color: var(--text-primary);
@@ -1020,7 +726,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .detail-section {
             margin-bottom: 16px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .detail-section:last-child {
@@ -1055,6 +761,55 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             font-size: 12px;
         }
 
+        /* Token Card */
+        .token-address {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-primary);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .token-address span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .btn-copy {
+            padding: 6px 14px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 6px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .token-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-monitoreando { background: rgba(123, 92, 255, 0.2); color: var(--accent-primary); }
+        .status-nuevo { background: rgba(0, 217, 126, 0.2); color: var(--success); }
+
         .token-icon {
             width: 32px;
             height: 32px;
@@ -1076,7 +831,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .info-section {
             margin-bottom: 14px;
             padding-bottom: 10px;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .info-section:last-child {
@@ -1112,47 +867,178 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             font-size: 12px;
         }
 
-        .daily-earnings {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 12px;
+        .calendar-wrapper {
+            margin-top: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
         }
 
-        .daily-row {
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-nav {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .calendar-nav:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 6px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .cal-cell {
+            background: rgba(20, 26, 61, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            min-height: 70px;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 2px;
+            position: relative;
+        }
+
+        .cal-cell:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.15);
+        }
+
+        .cal-cell.empty {
+            cursor: default;
+            opacity: 0.3;
+        }
+
+        .cal-cell.empty:hover {
+            transform: none;
+            border-color: var(--glass-border);
+            box-shadow: none;
+        }
+
+        .cal-cell.positive {
+            background: rgba(0, 255, 136, 0.08);
+            border-color: rgba(0, 255, 136, 0.2);
+        }
+
+        .cal-cell.positive:hover {
+            border-color: var(--success);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.2);
+        }
+
+        .cal-cell.negative {
+            background: rgba(255, 0, 84, 0.08);
+            border-color: rgba(255, 0, 84, 0.2);
+        }
+
+        .cal-cell.negative:hover {
+            border-color: var(--error);
+            box-shadow: 0 0 12px rgba(255, 0, 84, 0.2);
+        }
+
+        .cal-cell.today {
+            border-color: var(--accent-primary);
+            border-width: 2px;
+        }
+
+        .cal-day-num {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            width: 100%;
+            text-align: center;
+        }
+
+        .cal-cell.today .cal-day-num {
+            color: var(--accent-primary);
+        }
+
+        .cal-cell .cal-amount {
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+        }
+
+        .cal-cell .cal-pct {
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0.8;
+            line-height: 1.2;
+        }
+
+        .cal-cell .cal-no-data {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .cal-footer {
+            margin-top: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 14px;
             background: rgba(20, 26, 61, 0.4);
-            border-radius: 8px;
-            border: 1px solid rgba(79, 70, 229, 0.1);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            font-size: 13px;
         }
 
-        .daily-date {
-            font-size: 13px;
-            color: var(--text-muted);
+        .cal-footer .cal-month-total {
+            font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .daily-value {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .daily-count {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
         .stat-card {
-            background: rgba(18, 18, 37, 0.6);
+            background: var(--glass-bg);
             backdrop-filter: blur(16px) saturate(1.2);
-            border: 1px solid rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
             overflow: hidden;
         }
@@ -1171,9 +1057,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             position: relative;
             z-index: 1;
         }
-
         .stat-card:hover {
-            border-color: rgba(0, 212, 255, 0.4);
+            border-color: rgba(0, 212, 255, 0.35);
             box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4);
             transform: translateY(-3px);
         }
@@ -1191,17 +1076,22 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .admin-users {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .admin-users:hover {
+            border-color: rgba(0, 212, 255, 0.35);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.18), 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .admin-users-header {
             padding: 20px;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+            border-bottom: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1215,7 +1105,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .admin-users-table td {
             padding: 14px 20px;
             text-align: left;
-            border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .admin-users-table th {
@@ -1227,16 +1117,43 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .admin-users-table tr:hover {
-            background: rgba(79, 70, 229, 0.08);
-        }
-            background: var(--bg-secondary);
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--text-muted);
+            background: var(--bg-surface);
         }
 
-        .admin-users-table tr:hover {
-            background: var(--bg-surface);
+        /* Banned Table */
+        #bannedSection table {
+            width: 100%;
+        }
+
+        #bannedSection th,
+        #bannedSection td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        #bannedSection th {
+            background: rgba(20, 26, 61, 0.6);
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #bannedSection tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        #bannedSection tbody tr:hover {
+            background: rgba(0, 212, 255, 0.06);
+        }
+
+        #bannedSection .address {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: help;
         }
 
         .btn-edit, .btn-delete {
@@ -1310,18 +1227,19 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .criterio-card {
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .criterio-card:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
+            transform: translateY(-3px);
+            border-color: rgba(0, 212, 255, 0.35);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.18), 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .criterio-card .label {
@@ -1335,12 +1253,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             font-weight: 600;
             color: var(--accent-primary);
         }
-
-        .coin-action-nuevo { background: rgba(0, 217, 126, 0.2); color: var(--success); }
-        .coin-action-actualizado { background: rgba(123, 92, 255, 0.2); color: var(--accent-primary); }
-        .coin-action-tp { background: rgba(0, 217, 126, 0.3); color: var(--success); }
-        .coin-action-sl { background: rgba(255, 71, 87, 0.3); color: var(--error); }
-        .coin-action-rechazado { background: rgba(157, 149, 168, 0.2); color: var(--text-muted); }
 
         /* Modal */
         .modal {
@@ -1361,22 +1273,15 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         .modal-content {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+            background: rgba(14, 14, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(1.3);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 32px;
             width: 100%;
             max-width: 400px;
-            background: rgba(20, 26, 61, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(79, 70, 229, 0.15);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .modal-content:hover {
-            border-color: rgba(79, 70, 229, 0.4);
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(0, 212, 255, 0.08);
+            animation: modalFadeIn 0.25s ease forwards;
         }
 
         .modal-content h2 {
@@ -1409,25 +1314,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             animation: spin 1s linear infinite;
             margin: 0 auto 16px;
         }
-
-        .skeleton-card {
-            background: rgba(18, 18, 37, 0.6);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.1);
-            animation: pulseGlow 2s ease-in-out infinite;
-        }
-        .skeleton-line {
-            height: 14px;
-            border-radius: 8px;
-            background: linear-gradient(90deg, rgba(0,212,255,0.08) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.08) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s linear infinite;
-            margin-bottom: 10px;
-        }
-        .skeleton-line:nth-child(2) { width: 75%; }
-        .skeleton-line:nth-child(3) { width: 50%; }
-        .skeleton-line:last-child { width: 60%; }
 
         /* Toast notifications */
         .toast-container {
@@ -1466,10 +1352,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             0%, 100% { box-shadow: 0 0 8px rgba(0,212,255,0.2), 0 0 16px rgba(0,212,255,0.1); }
             50% { box-shadow: 0 0 16px rgba(0,212,255,0.4), 0 0 32px rgba(0,212,255,0.2); }
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-        }
         @keyframes shimmer {
             0% { background-position: -200% center; }
             100% { background-position: 200% center; }
@@ -1482,10 +1364,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             from { opacity: 0; transform: translateY(30px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes livePulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.3); }
-        }
         @keyframes fadeOut {
             from { opacity: 1; transform: translateY(0); }
             to { opacity: 0; transform: translateY(-20px); }
@@ -1494,12 +1372,77 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             from { opacity: 0; transform: translateX(100%); }
             to { opacity: 1; transform: translateX(0); }
         }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Utility Classes */
+        .input-mono {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+        .input-danger {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+        .input-mono:focus,
+        .input-danger:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(20, 26, 61, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            backdrop-filter: blur(12px);
+        }
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        .flex-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .flex-row-wrap {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .status-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            align-self: center;
+        }
+        .icon-sm { width: 18px; height: 18px; stroke-width: 1.75; }
+        .icon-md { width: 24px; height: 24px; stroke-width: 1.75; }
+        .icon-lg { width: 40px; height: 40px; stroke-width: 1.75; }
+        .error { color: var(--error); font-size: 13px; }
+        .address { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); }
+        .swal-token-info { background: var(--bg-secondary) !important; border: 1px solid var(--glass-border) !important; }
+        .swal-detail { background: var(--bg-secondary) !important; border: 1px solid var(--glass-border) !important; }
 
         /* Responsive */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
-                gap: 16px;
+                gap: 12px;
                 padding: 12px 16px;
             }
 
@@ -1510,6 +1453,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
             .nav-tabs {
                 padding: 12px 16px;
+                gap: 4px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .main-content {
@@ -1528,14 +1474,11 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 grid-template-columns: 1fr 1fr;
             }
 
-            .historial-table {
-                display: block;
-                overflow-x: auto;
-            }
-
+            .historial-table,
             .admin-users-table {
                 display: block;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .admin-users {
@@ -1552,6 +1495,38 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 padding: 8px 14px;
                 font-size: 14px;
             }
+
+            .modal-content {
+                margin: 16px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .admin-stats {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .criterios-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .stat-card { padding: 16px; }
+            .stat-card .value { font-size: 26px; }
+
+            .historial-table th,
+            .historial-table td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .modal-content { padding: 24px; }
         }
 
         @media (max-width: 480px) {
@@ -1567,6 +1542,30 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 display: inline-block;
                 min-width: 40px;
             }
+
+            .tokens-grid {
+                gap: 12px;
+            }
+
+            .token-card {
+                padding: 14px;
+            }
+
+            .criterios-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .main-content {
+                padding: 12px;
+            }
+
+            .header { padding: 10px 12px; }
+            .nav-tabs { padding: 10px 12px; }
         }
     </style>
 </head>
@@ -1575,8 +1574,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
     <div class="login-container" id="loginSection">
         <div class="login-box">
             <div class="login-logo">
-                <i data-lucide="bar-chart-3" class="icon" style="width:40px;height:40px;stroke:var(--accent-primary);stroke-width:1.75"></i>
-                <h1>ALTCHECKS</h1>
+                <i data-lucide="bar-chart-3" class="icon-lg" style="stroke:var(--accent-primary);"></i>
+                <h1>ALTICHECKER</h1>
             </div>
             <div class="login-error" id="loginError"></div>
             <form id="loginForm">
@@ -1591,7 +1590,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 <button type="submit" class="btn btn-primary">Login</button>
             </form>
             <div class="login-footer">
-                © 2026 AltChecks - Token Monitoring System
+                © 2026 AltiChecker - Token Monitoring System
             </div>
         </div>
     </div>
@@ -1602,13 +1601,16 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         <header class="header">
             <div class="header-logo">
                 <i data-lucide="bar-chart-3" style="width:24px;height:24px;stroke:var(--accent-primary);stroke-width:1.75"></i>
-                <h1>ALTCHECKS</h1>
+                <h1>ALTICHECKER</h1>
             </div>
             <div class="header-info">
                 <div class="server-status" id="serverStatus">
                     <span class="dot"></span>
                     <span class="text">Server: Inactive</span>
                 </div>
+                <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="Refresh data">
+                    <i data-lucide="refresh-cw" style="width:16px;height:16px;stroke-width:2"></i>
+                </button>
                 <div class="user-badge">
                     <span class="username" id="userName"></span>
                     <span class="level" id="userLevel"></span>
@@ -1628,17 +1630,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Disclaimer -->
-            <div class="disclaimer">
-                <i data-lucide="alert-triangle" style="width:20px;height:20px;stroke:var(--warning);stroke-width:1.75"></i> IMPORTANT NOTICE
-                <ul>
-                    <li>Invest only capital you can afford to lose</li>
-                    <li>Never more than 5% of your capital per trade</li>
-                    <li>DYOR - Do your own research</li>
-                    <li>Past results don't guarantee future results</li>
-                </ul>
-            </div>
-
             <!-- Overview Section -->
             <section class="section active" id="overviewSection">
                 <div id="overviewContent">
@@ -1680,16 +1671,29 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
             <!-- Banned Section (Admin Only) -->
             <section class="section" id="bannedSection">
-                <i data-lucide="ban" style="width:24px;height:24px;stroke:var(--error);stroke-width:1.75"></i> Banned Tokens
+                <div class="flex-row" style="margin-bottom:12px;">
+                    <i data-lucide="ban" class="icon-md" style="stroke:var(--error);"></i>
+                    <span class="section-title">Banned Tokens</span>
+                </div>
+                <div class="admin-section flex-row-wrap" style="margin-bottom:16px;">
+                    <input type="text" id="banTokenAddress" placeholder="Token address..." class="input-danger" style="flex:2;min-width:200px;">
+                    <input type="text" id="banTokenName" placeholder="Name (optional)..." class="input-danger" style="flex:1;min-width:120px;">
+                    <button onclick="banearTokenManual()" class="btn-delete" style="padding:10px 20px;">Ban Token</button>
+                    <button onclick="exportBannedTokens()" class="btn-edit" style="padding:10px 20px;">Export JSON</button>
+                    <button onclick="importBannedTokens()" class="btn-add" style="padding:10px 20px;">Import JSON</button>
+                    <div id="banTokenStatus" class="status-text"></div>
+                </div>
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
+                                <th>Name</th>
                                 <th>Token Address</th>
                                 <th>Pair Address</th>
                                 <th>Chain</th>
                                 <th>Reason</th>
                                 <th>Date</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="bannedTable"></tbody>
@@ -1703,8 +1707,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     <div class="admin-stats" id="adminStats"></div>
 
                     <div class="api-key-card" id="apiKeyCard">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                            <i data-lucide="key" style="width:18px;height:18px;stroke:var(--accent-primary);stroke-width:1.75"></i>
+                        <div class="flex-row" style="margin-bottom:8px;">
+                            <i data-lucide="key" class="icon-sm" style="stroke:var(--accent-primary);"></i>
                             <span style="font-weight:600;font-size:14px;">API Key</span>
                         </div>
                         <div class="key-display" id="apiKeyDisplay">Loading...</div>
@@ -1712,13 +1716,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <button class="btn-edit" onclick="revealApiKey()" id="btnRevealKey">Reveal</button>
                             <button class="btn-copy" onclick="copyApiKey()" id="btnCopyKey">Copy</button>
                             <button class="btn-edit" onclick="regenerateApiKey()" id="btnRegenKey">Rehacer</button>
-                            <span id="regenCountdown" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;"></span>
+                            <span id="regenCountdown" style="font-size:12px;display:flex;align-items:center;"></span>
                         </div>
                     </div>
 
                     <div class="admin-section" id="criteriaSection" style="margin-bottom:24px;">
-                        <h3 class="section-title" style="display:flex;align-items:center;gap:8px;">
-                            <i data-lucide="sliders" style="width:18px;height:18px;stroke:var(--text-muted);stroke-width:1.75"></i> Trading Criteria
+                        <h3 class="section-title">
+                            <i data-lucide="sliders" class="icon-sm" style="stroke:var(--text-muted);"></i> Trading Criteria
                         </h3>
                         <div id="criteriaContent">
                             <div class="criteria-form" id="criteriaForm"></div>
@@ -1727,21 +1731,24 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     </div>
 
                     <div class="admin-section" id="manualCoinSection" style="margin-bottom:24px;">
-                        <h3 class="section-title" style="display:flex;align-items:center;gap:8px;">
-                            <i data-lucide="plus-circle" style="width:18px;height:18px;stroke:var(--accent-primary);stroke-width:1.75"></i> Add Manual Coin
+                        <h3 class="section-title">
+                            <i data-lucide="plus-circle" class="icon-sm" style="stroke:var(--accent-primary);"></i> Add Manual Coin
                         </h3>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input type="text" id="manualCoinAddress" placeholder="Solana token address..." style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(79,70,229,0.2);border-radius:6px;padding:10px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:13px;">
+                        <div class="flex-row">
+                            <input type="text" id="manualCoinAddress" placeholder="Solana token address..." class="input-mono" style="flex:1;">
                             <button class="btn-add" onclick="addManualCoin()" id="btnAddManualCoin">Add Coin</button>
                         </div>
-                        <div id="manualCoinStatus" style="margin-top:8px;font-size:13px;color:var(--text-muted);"></div>
+                        <div id="manualCoinStatus" class="status-text" style="margin-top:8px;"></div>
                     </div>
 
                     <div class="admin-users">
-                        <div class="admin-users-header">
-                            <i data-lucide="users" style="width:20px;height:20px;stroke:var(--accent-primary);stroke-width:1.75"></i> User Management
-                            <button class="btn-add" id="addUserBtn">+ Add User</button>
+                    <div class="admin-users-header">
+                        <div class="flex-row">
+                            <i data-lucide="users" class="icon-sm" style="stroke:var(--accent-primary);"></i>
+                            <span class="section-title">User Management</span>
                         </div>
+                        <button class="btn-add" id="addUserBtn">+ Add User</button>
+                    </div>
                         <div class="table-wrapper">
                             <table class="admin-users-table">
                                 <thead>
@@ -1779,17 +1786,10 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 </div>
                 <div class="form-group">
                     <label>Level</label>
-                    <select id="modalNivel" style="width:100%;padding:14px 16px;background:rgba(20,26,61,0.6);border:1px solid rgba(79,70,229,0.15);border-radius:10px;color:var(--text-primary);font-size:16px;backdrop-filter:blur(12px);" onchange="document.getElementById('modalNivelDetalle').style.display=this.value==='vip'?'block':'none'">
-                        <option value="vip">VIP (Basic/Pro/Ultra)</option>
+                    <select id="modalNivel" class="form-select">
+                        <option value="free">Free</option>
+                        <option value="vip">Pro</option>
                         <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="form-group" id="modalNivelDetalle" style="display:none;">
-                    <label>Plan</label>
-                    <select id="modalNivelDetalleSelect" style="width:100%;padding:14px 16px;background:rgba(20,26,61,0.6);border:1px solid rgba(79,70,229,0.15);border-radius:10px;color:var(--text-primary);font-size:16px;backdrop-filter:blur(12px);">
-                        <option value="1">Basic (20%)</option>
-                        <option value="2">Pro (50%)</option>
-                        <option value="3">Ultra (100%)</option>
                     </select>
                 </div>
                 <div class="modal-actions">
@@ -1807,18 +1807,16 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
     </footer>
 
     <script>
-        console.log('AltChecks: Script loaded');
+        console.log('AltiChecker: Script loaded');
         
         let currentUser = null;
         let currentToken = null;
-        let tiempoRestante = 0;
-        let intervalId = null;
         let dataRefreshInterval = null;
 
         // Check session on load
         function checkSession() {
-            const savedUser = localStorage.getItem('altchecks_user');
-            const savedToken = localStorage.getItem('altchecks_token');
+            const savedUser = localStorage.getItem('altiChecker_user');
+            const savedToken = localStorage.getItem('altiChecker_token');
 
             if (savedUser && savedToken) {
                 currentUser = JSON.parse(savedUser);
@@ -1828,8 +1826,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         function clearSession() {
-            localStorage.removeItem('altchecks_user');
-            localStorage.removeItem('altchecks_token');
+            localStorage.removeItem('altiChecker_user');
+            localStorage.removeItem('altiChecker_token');
             currentUser = null;
             currentToken = null;
             if (dataRefreshInterval) clearInterval(dataRefreshInterval);
@@ -1838,12 +1836,12 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         // Check session on page load
-        console.log('AltChecks: Running checkSession...');
+        console.log('AltiChecker: Running checkSession...');
         checkSession();
-        console.log('AltChecks: checkSession done, currentUser:', currentUser);
+        console.log('AltiChecker: checkSession done, currentUser:', currentUser);
 
         // Login
-        console.log('AltChecks: Setting up login form listener...');
+        console.log('AltiChecker: Setting up login form listener...');
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -1874,8 +1872,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     currentUser = data.user;
                     currentToken = data.user.token;
 
-                    localStorage.setItem('altchecks_user', JSON.stringify(data.user));
-                    localStorage.setItem('altchecks_token', data.user.token);
+                    localStorage.setItem('altiChecker_user', JSON.stringify(data.user));
+                    localStorage.setItem('altiChecker_token', data.user.token);
 
                     showDashboard();
                 } else {
@@ -1906,49 +1904,44 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         // Show Dashboard
         function showDashboard() {
-            console.log('AltChecks: showDashboard called');
+            console.log('AltiChecker: showDashboard called');
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('dashboardSection').classList.add('active');
 
-            console.log('AltChecks: Setting user info...');
+            console.log('AltiChecker: Setting user info...');
             document.getElementById('userName').textContent = currentUser.username;
             const levelBadge = document.getElementById('userLevel');
-            const nivelNames = { 1: 'Basic', 2: 'Pro', 3: 'Ultra', admin: 'Admin' };
-            const nivelLabel = currentUser.nivel === 'admin' ? 'Admin' : (nivelNames[currentUser.nivel_detalle] || 'Basic');
+            const nivelNames = { free: 'Free', vip: 'Pro', admin: 'Admin' };
+            const nivelLabel = nivelNames[currentUser.nivel] || 'Free';
             levelBadge.textContent = nivelLabel;
-            levelBadge.className = 'level level-' + (currentUser.nivel === 'admin' ? 'admin' : currentUser.nivel_detalle);
+            levelBadge.className = 'level level-' + (currentUser.nivel === 'admin' ? 'admin' : (currentUser.nivel === 'vip' ? 'pro' : 'free'));
 
-            console.log('AltChecks: Resetting tabs...');
+            console.log('AltiChecker: Resetting tabs...');
             // Reset tabs to overview
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelector('.nav-tab[data-tab="overview"]').classList.add('active');
             document.getElementById('overviewSection').classList.add('active');
 
-            console.log('AltChecks: Updating server status...');
+            console.log('AltiChecker: Updating server status...');
             updateServerStatus();
 
-            const isConfig =
-                currentUser.is_admin ||
-                currentUser.plan === 'ultra' ||
-                currentUser.plan === 'pro' ||
-                currentUser.nivel === 'admin' ||
-                currentUser.nivel_detalle >= 2;
-            const isAdmin = currentUser.is_admin || currentUser.nivel === 'admin';
-            if (isConfig) {
-                document.getElementById('tabConfig').style.display = 'inline-block';
-            } else {
-                document.getElementById('tabConfig').style.display = 'none';
-            }
+            const isAdmin = currentUser.nivel === 'admin';
+            document.getElementById('tabConfig').style.display = (currentUser.nivel !== 'free') ? 'inline-block' : 'none';
+            document.getElementById('tabHistorial').style.display = 'inline-block';
             document.getElementById('tabBanned').style.display = isAdmin ? 'inline-block' : 'none';
-            document.getElementById('tabHistorial').style.display = isAdmin ? 'inline-block' : 'none';
 
-            console.log('AltChecks: Calling loadData()...');
+            console.log('AltiChecker: Calling loadData()...');
             loadData();
+            console.log('AltiChecker: showDashboard complete');
+        }
 
-            if (dataRefreshInterval) clearInterval(dataRefreshInterval);
-            dataRefreshInterval = setInterval(loadData, 10000);
-            console.log('AltChecks: showDashboard complete');
+        // Manual Refresh
+        function manualRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            btn.classList.add('spinning');
+            loadData();
+            setTimeout(() => btn.classList.remove('spinning'), 2000);
         }
 
         // Server Status
@@ -1970,23 +1963,23 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         }
 
         // Tabs
-        console.log('AltChecks: Setting up tab click handlers...');
+        console.log('AltiChecker: Setting up tab click handlers...');
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                console.log('AltChecks: Tab clicked:', tab.dataset.tab);
+                console.log('AltiChecker: Tab clicked:', tab.dataset.tab);
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
                 tab.classList.add('active');
                 const sectionId = tab.dataset.tab + 'Section';
-                console.log('AltChecks: Showing section:', sectionId);
+                console.log('AltiChecker: Showing section:', sectionId);
                 document.getElementById(sectionId).classList.add('active');
             });
         });
 
         // Load Data
         function loadData() {
-            console.log('AltChecks: loadData started, token:', currentToken ? 'present' : 'MISSING', 'user level:', currentUser?.nivel);
+            console.log('AltiChecker: loadData started, token:', currentToken ? 'present' : 'MISSING', 'user level:', currentUser?.nivel);
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 10000);
             
@@ -1996,23 +1989,17 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             })
             .then(r => {
                 clearTimeout(timeout);
-                console.log('AltChecks: API response status:', r.status);
+                console.log('AltiChecker: API response status:', r.status);
                 return r.json();
             })
             .then(data => {
-                console.log('AltChecks: API data received, success:', data.success, 'nivel:', currentUser.nivel);
+                console.log('AltiChecker: API data received, success:', data.success, 'nivel:', currentUser.nivel);
                 if (!data.success) {
                     document.getElementById('overviewContent').innerHTML = '<div class="error">Error: ' + (data.error || 'Unknown error') + '</div>';
                     return;
                 }
 
-                console.log('AltChecks: Calling render function for nivel:', currentUser.nivel);
-                if (currentUser.nivel === 'free') {
-                    renderFreeUser(data);
-                } else {
-                    renderVipUser(data);
-                }
-                console.log('AltChecks: Render function called');
+                renderDashboard(data);
             })
             .catch(err => {
                 console.error('Error cargando datos:', err);
@@ -2020,97 +2007,16 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 document.getElementById('overviewContent').innerHTML = '<div class="error">' + errorMsg + '</div>';
             });
 
-            const isAdminLd = currentUser.is_admin || currentUser.nivel === 'admin';
-            const isConfigLd =
-                currentUser.is_admin ||
-                currentUser.plan === 'ultra' ||
-                currentUser.plan === 'pro' ||
-                currentUser.nivel === 'admin' ||
-                currentUser.nivel_detalle >= 2;
-            if (isConfigLd) {
-                loadAdmin();
-            }
-            if (!isAdminLd) document.getElementById('tabHistorial').style.display = 'none';
+            loadConfigData();
         }
 
-        // Render Free User
-        function renderFreeUser(data) {
-            console.log('AltChecks: renderFreeUser called');
-            const content = document.getElementById('overviewContent');
-            document.getElementById('tabTokens').style.display = 'none';
-            document.getElementById('tabHistorial').style.display = 'none';
 
-            if (!data.token) {
-                content.innerHTML = `
-                    <div class="disclaimer" style="background: rgba(123,92,255,0.1);border-color: var(--accent-primary);">
-                        <i data-lucide="wifi-off" style="width:20px;height:20px;stroke:var(--text-muted);stroke-width:1.75"></i> Esperando datos...
-                        <p>El servidor está procesando tokens. Por favor espera.</p>
-                    </div>
-                `;
-                return;
-            }
 
-            const t = data.token;
-            tiempoRestante = data.tiempo_restante;
-
-            content.innerHTML = `
-                <div class="free-token-container">
-                    <div class="free-token-card">
-                        <i data-lucide="loader" class="icon" style="width:40px;height:40px;stroke:var(--warning);stroke-width:1.75"></i>
-                        <div class="name">${t.nombre || 'Token'}</div>
-                        <div class="chain">${getChainBadge(t.chain_id)} ${t.simbolo || ''}</div>
-
-                        <div class="free-token-details">
-                            <div class="row">
-                                <span class="label">Price</span>
-                                <span class="value">$${formatPrice(t.precio_actual)}</span>
-                            </div>
-                            <div class="row">
-                                <span class="label">Market Cap</span>
-                                <span class="value">$${formatNumber(t.market_cap)}</span>
-                            </div>
-                            <div class="row">
-                                <span class="label">Liquidez</span>
-                                <span class="value">$${formatNumber(t.liquidez)}</span>
-                            </div>
-                            <div class="row">
-                                <span class="label">Cambio 1h</span>
-                                <span class="value ${t.cambio_1h >= 0 ? 'positive' : 'negative'}">${t.cambio_1h}%</span>
-                            </div>
-                            <div class="row">
-                                <span class="label">Cambio 6h</span>
-                                <span class="value ${t.cambio_6h >= 0 ? 'positive' : 'negative'}">${t.cambio_6h}%</span>
-                            </div>
-                        </div>
-
-                        <div class="token-address">
-                            <span>${truncateAddress(t.token_address)}</span>
-                            <button class="btn-copy" onclick="copyToClipboard('${t.token_address}', this)">Copiar</button>
-                        </div>
-
-                        <div class="tiempo-restante" id="tiempoRestante">
-                            <i data-lucide="clock" style="width:16px;height:16px;stroke:var(--text-muted);stroke-width:1.75"></i> Tiempo restante
-                            <div class="time" id="countdown">${formatTime(tiempoRestante)}</div>
-                        </div>
-                    </div>
-
-                    <div class="upgrade-banner">
-                        <i data-lucide="zap" style="width:20px;height:20px;stroke:var(--accent-primary);stroke-width:1.75"></i> Actualiza a VIP!
-                        <p>Ver TODOS los tokens en tiempo real</p>
-                    </div>
-                </div>
-            `;
-
-            startCountdown();
-        }
-
-        // Render VIP/Admin User
-        function renderVipUser(data) {
-            console.log('AltChecks: renderVipUser STARTED');
+        // Render Dashboard
+        function renderDashboard(data) {
+            console.log('AltiChecker: renderDashboard STARTED');
             try {
                 document.getElementById('tabTokens').style.display = 'inline-block';
-                const isAdminVu = currentUser.is_admin || currentUser.nivel === 'admin';
-                document.getElementById('tabHistorial').style.display = isAdminVu ? 'inline-block' : 'none';
 
                 const hoyServer = new Date();
                 const hoyServerDate = hoyServer.getFullYear() + '-' + String(hoyServer.getMonth() + 1).padStart(2, '0') + '-' + String(hoyServer.getDate()).padStart(2, '0');
@@ -2133,8 +2039,11 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 const gainClass = totalHoy >= 0 ? 'profit-positive' : 'profit-negative';
                 const gainLabel = totalHoy >= 0 ? '+' : '';
 
-                console.log('AltChecks: Rendering stats...');
+                console.log('AltiChecker: Rendering stats...');
                 // Overview
+                const wallet = data.wallet || { saldo: 1000.00, profit_30d: 0 };
+                const walletClass = wallet.profit_30d >= 0 ? 'profit-positive' : 'profit-negative';
+                const walletLabel = wallet.profit_30d >= 0 ? '+' : '';
                 let statsHtml = `
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -2142,58 +2051,44 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <div class="label">Active Tokens</div>
                         </div>
                         <div class="stat-card">
-                            <div class="value ${gainClass}">${gainLabel}${totalHoy.toFixed(2)}%</div>
-                            <div class="label">Today's Earnings</div>
+                            <div class="value profit-positive" style="color:var(--success);">$${formatNumber(wallet.saldo)}</div>
+                            <div class="label">Saldo Actual</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value ${walletClass}">${walletLabel}$${wallet.profit_30d.toFixed(2)}</div>
+                            <div class="label">Profit 30 días</div>
                         </div>
                         <div class="stat-card">
                             <div class="value">${tradesHoy || 0}</div>
-                            <div class="label">In History</div>
+                            <div class="label">Trades Hoy</div>
                         </div>
                     </div>
                 `;
                 document.getElementById('overviewContent').innerHTML = statsHtml;
-                console.log('AltChecks: Stats rendered, tokens:', data.tokens?.length);
+                console.log('AltiChecker: Stats rendered, tokens:', data.tokens?.length);
 
-                // Daily Earnings (previous days)
+                // Calendar: Daily Earnings
                 const hoyDate = hoyServerDate;
-                fetch('api/tokens.php?action=earnings_by_day', {
-                    headers: { 'Authorization': currentToken }
-                })
-                .then(r => r.json())
-                .then(ed => {
-                    if (!ed.success || !ed.earnings || ed.earnings.length === 0) return;
-                    let dailyHtml = '<div style="margin-top:24px;"><h3 style="font-size:20px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:12px;">Daily Earnings</h3><div class="daily-earnings">';
-                    ed.earnings.forEach(e => {
-                        if (e.entry_date === hoyDate) return;
-                        const val = parseFloat(e.total_earnings);
-                        const cls = val >= 0 ? 'profit-positive' : 'profit-negative';
-                        const label = val >= 0 ? '+' : '';
-                        const date = new Date(e.entry_date + 'T00:00:00');
-                        const fmt = (date.getMonth()+1).toString().padStart(2,'0') + '/' + date.getDate().toString().padStart(2,'0') + '/' + date.getFullYear();
-                        dailyHtml += `<div class="daily-row"><span class="daily-date">${fmt}</span><span class="daily-value ${cls}">${label}${val.toFixed(2)}%</span><span class="daily-count">${e.total_trades} trade${e.total_trades > 1 ? 's' : ''}</span></div>`;
-                    });
-                    dailyHtml += '</div></div>';
-                    if (dailyHtml.includes('daily-row')) {
-                        document.getElementById('overviewContent').insertAdjacentHTML('beforeend', dailyHtml);
-                    }
-                });
+                currentCalendarMonth = currentCalendarMonth || hoyDate.substring(0, 7);
+                loadCalendar(currentCalendarMonth);
 
                 // Tokens Grid
                 document.getElementById('tokensCount').textContent = data.tokens?.length || 0;
                 const grid = document.getElementById('tokensGrid');
-                console.log('AltChecks: Rendering token grid, element exists:', !!grid);
+                console.log('AltiChecker: Rendering token grid, element exists:', !!grid);
+                const coinsTagsMap = data.coins_tags || {};
 
                 if (data.tokens && data.tokens.length > 0) {
-                    grid.innerHTML = data.tokens.map((t, idx) => renderTokenCard(t, idx)).join('');
+                    grid.innerHTML = data.tokens.map((t, idx) => renderTokenCard(t, idx, coinsTagsMap)).join('');
                 } else {
                     grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:40px;">No hay tokens activos</p>';
                 }
-                console.log('AltChecks: Token grid rendered');
+                console.log('AltiChecker: Token grid rendered');
 
                 // Historial
-                console.log('AltChecks: Rendering historial...');
+                console.log('AltiChecker: Rendering historial...');
                 const historialTable = document.getElementById('historialTable');
-                console.log('AltChecks: historialTable element:', !!historialTable);
+                console.log('AltiChecker: historialTable element:', !!historialTable);
                 if (data.historial && data.historial.length > 0) {
                     const groups = {};
                     data.historial.forEach(h => {
@@ -2227,15 +2122,27 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
                         trades.forEach(h => {
                             const style = isToday ? '' : ' style="display:none;"';
+                            const hNameNorm = (h.nombre || '').toUpperCase().trim();
+                            const hTagData = coinsTagsMap ? coinsTagsMap[hNameNorm] : null;
+                            let hTagHtml = '';
+                            if (hTagData) {
+                                const hParts = [];
+                                if (parseInt(hTagData.strong_count) > 0) hParts.push(`${hTagData.strong_count}xS`);
+                                if (parseInt(hTagData.okay_count) > 0) hParts.push(`${hTagData.okay_count}xOk`);
+                                if (parseInt(hTagData.checking_count) > 0) hParts.push(`${hTagData.checking_count}xCh`);
+                                if (parseInt(hTagData.inestable_count) > 0) hParts.push(`${hTagData.inestable_count}xI`);
+                                if (hParts.length > 0) hTagHtml = `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:1px;">${hParts.join(', ')}</div>`;
+                            }
                             html += `<tr class="${groupClass}"${style}>
                                 <td data-label="Token">
                                     <div style="font-weight:600;">${h.nombre || h.simbolo || '?'}</div>
                                     ${h.tag ? `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">${h.tag}</div>` : ''}
+                                    ${hTagHtml}
                                 </td>
                                 <td data-label="Chain">${getChainBadge(h.chain_id)}</td>
                                 <td data-label="Entry">$${formatPrice(h.precio_entrada)}</td>
                                 <td data-label="Exit">$${formatPrice(h.precio_salida)}</td>
-                                <td data-label="Profit" class="${h.profit_porcentaje >= 0 ? 'profit-positive' : 'profit-negative'}">${h.profit_porcentaje}%</td>
+                                <td data-label="Profit" class="${h.profit_porcentaje >= 0 ? 'profit-positive' : 'profit-negative'}">${h.profit_dolares ? (h.profit_dolares >= 0 ? '+' : '') + '$' + parseFloat(h.profit_dolares).toFixed(2) + ' ' : ''}(${h.profit_porcentaje}%)</td>
                                 <td data-label="Duration">${h.duracion_minutos} min</td>
                                 <td data-label="Reason">${getRazonSalida(h.razon_salida)}</td>
                                 <td data-label="Address" style="font-size:0.75rem;">
@@ -2250,7 +2157,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 } else {
                     historialTable.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">No history</td></tr>';
                 }
-                console.log('AltChecks: Historial rendered');
+                console.log('AltiChecker: Historial rendered');
 
                 window.toggleHistGroup = function(headerRow) {
                     const className = headerRow.getAttribute('data-group');
@@ -2262,10 +2169,143 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     if (toggle) toggle.textContent = isHidden ? '▼' : '▶';
                 };
 
-                console.log('AltChecks: renderVipUser COMPLETE');
+                console.log('AltiChecker: renderDashboard COMPLETE');
             } catch (e) {
-                console.error('AltChecks: renderVipUser ERROR:', e);
+                console.error('AltiChecker: renderDashboard ERROR:', e);
             }
+        }
+
+        // Calendar variables
+        let currentCalendarMonth = null;
+
+        // Load calendar data
+        function loadCalendar(month) {
+            fetch('api/tokens.php?action=earnings_by_day&month=' + encodeURIComponent(month), {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                renderCalendar(data.earnings || [], data.month, data.today);
+            })
+            .catch(() => {});
+        }
+
+        // Render Calendar
+        function renderCalendar(earnings, month, today) {
+            const [year, m] = month.split('-').map(Number);
+            const firstDay = new Date(year, m - 1, 1);
+            const lastDay = new Date(year, m, 0);
+            const daysInMonth = lastDay.getDate();
+            let startDay = firstDay.getDay() - 1;
+            if (startDay < 0) startDay = 6;
+
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const monthLabel = monthNames[m - 1] + ' ' + year;
+
+            const earningsMap = {};
+            let monthTotalPct = 0, monthTotalDollars = 0, monthTrades = 0;
+            earnings.forEach(e => {
+                earningsMap[e.entry_date] = e;
+                monthTotalPct += parseFloat(e.total_earnings_pct || 0);
+                monthTotalDollars += parseFloat(e.total_profit_dollars || 0);
+                monthTrades += parseInt(e.total_trades || 0);
+            });
+
+            let html = '<div class="calendar-wrapper" id="calendarWidget">';
+            html += '<div class="calendar-header">';
+            html += '<button class="calendar-nav" onclick="prevMonth()">◀</button>';
+            html += '<h3>' + monthLabel + '</h3>';
+            html += '<button class="calendar-nav" onclick="nextMonth()">▶</button>';
+            html += '</div><div class="calendar-grid">';
+            ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+                html += '<div class="calendar-weekday">' + d + '</div>';
+            });
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="cal-cell empty"></div>';
+            }
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = year + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+                const e = earningsMap[dateStr];
+                const isToday = dateStr === today;
+                let cellClass = 'cal-cell';
+                if (isToday) cellClass += ' today';
+                if (e) {
+                    const pct = parseFloat(e.total_earnings_pct);
+                    cellClass += pct >= 0 ? ' positive' : ' negative';
+                    const pctLabel = pct >= 0 ? '+' : '';
+                    const dolLabel = e.total_profit_dollars >= 0 ? '+' : '';
+                    html += '<div class="' + cellClass + '" onclick="showDayDetails(\'' + dateStr + '\')">';
+                    html += '<div class="cal-day-num">' + d + '</div>';
+                    html += '<div class="cal-amount">' + dolLabel + '$' + Math.abs(e.total_profit_dollars).toFixed(2) + '</div>';
+                    html += '<div class="cal-pct">(' + pctLabel + pct.toFixed(2) + '%)</div></div>';
+                } else {
+                    html += '<div class="' + cellClass + '">';
+                    html += '<div class="cal-day-num">' + d + '</div>';
+                    html += '<div class="cal-no-data">—</div></div>';
+                }
+            }
+            html += '</div>';
+            const mClass = monthTotalPct >= 0 ? 'profit-positive' : 'profit-negative';
+            const mLabel = monthTotalPct >= 0 ? '+' : '';
+            html += '<div class="cal-footer">';
+            html += '<span>' + monthNames[m - 1] + ' total: <span class="cal-month-total ' + mClass + '">' + mLabel + '$' + monthTotalDollars.toFixed(2) + ' (' + mLabel + monthTotalPct.toFixed(2) + '%)</span></span>';
+            html += '<span>' + monthTrades + ' trade' + (monthTrades !== 1 ? 's' : '') + '</span>';
+            html += '</div></div>';
+
+            const existing = document.getElementById('calendarWidget');
+            if (existing) {
+                existing.outerHTML = html;
+            } else {
+                document.getElementById('overviewContent').insertAdjacentHTML('beforeend', html);
+            }
+        }
+
+        function prevMonth() {
+            const [year, m] = currentCalendarMonth.split('-').map(Number);
+            const d = new Date(year, m - 2, 1);
+            currentCalendarMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            loadCalendar(currentCalendarMonth);
+        }
+
+        function nextMonth() {
+            const [year, m] = currentCalendarMonth.split('-').map(Number);
+            const d = new Date(year, m, 1);
+            currentCalendarMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            loadCalendar(currentCalendarMonth);
+        }
+
+        // Show day details popup
+        function showDayDetails(date) {
+            fetch('api/tokens.php?action=earnings_detail&date=' + encodeURIComponent(date), {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.trades || data.trades.length === 0) return;
+                const d = new Date(date + 'T00:00:00');
+                const fmt = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+                const totalClass = data.total_profit_dollars >= 0 ? 'profit-positive' : 'profit-negative';
+                const totalLabel = data.total_profit_dollars >= 0 ? '+' : '';
+                const tradesHtml = data.trades.map(t => {
+                    const pct = parseFloat(t.profit_porcentaje);
+                    const dol = parseFloat(t.profit_dolares || 0);
+                    const cls = pct >= 0 ? 'profit-positive' : 'profit-negative';
+                    const lbl = pct >= 0 ? '+' : '';
+                    return `<div class="detail-row"><span class="detail-label">${t.nombre || t.simbolo || '?'} <span class="chain-badge ${getChainClass(t.chain_id)}" style="font-size:9px;">${t.chain_id}</span></span><span class="detail-value ${cls}">${lbl}$${Math.abs(dol).toFixed(2)} (${lbl}${pct.toFixed(2)}%)</span></div>`;
+                }).join('');
+                Swal.fire({
+                    title: '📅 ' + fmt,
+                    width: 480,
+                    padding: '24px',
+                    background: 'var(--bg-primary)',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: { popup: 'swal-detail' },
+                    html: `<div class="detail-modal"><div class="detail-section" style="max-height:300px;overflow-y:auto;">${tradesHtml}</div><div class="detail-section" style="border-bottom:none;"><div class="detail-row"><span class="detail-label" style="font-weight:700;">Total</span><span class="detail-value ${totalClass}" style="font-weight:700;">${totalLabel}$${data.total_profit_dollars.toFixed(2)} (${totalLabel}${data.total_profit_pct.toFixed(2)}%)</span></div><div class="detail-row" style="margin-top:4px;"><span class="detail-label">Trades</span><span class="detail-value">${data.trades.length}</span></div></div></div>`
+                });
+            })
+            .catch(() => {});
         }
 
         function showTokenInfo(chainId, tokenAddress, tokenId) {
@@ -2324,6 +2364,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <div class="info-section">
                                 <div class="info-section-title">Timing</div>
                                 <div class="info-row"><span class="info-label">Pair Created</span><span class="info-value">${pairCreated ? formatDate(pairCreated) : 'N/A'}</span></div>
+                                ${data.twitter_created_at ? `<div class="info-row"><span class="info-label">Twitter Created</span><span class="info-value">${formatDate(data.twitter_created_at)}</span></div>` : ''}
                             </div>
 
                             ${links.length > 0 ? `<div class="info-section"><div class="info-section-title">Links</div>${links.map(l => {
@@ -2361,15 +2402,32 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     img.src = iconUrl;
                 }
             })
-            .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+            .catch(err => Swal.fire({ icon: 'error', title: 'Network error', text: err.message || 'unknown' }));
         }
 
-        function renderTokenCard(t, idx) {
+        function renderTokenCard(t, idx, coinsTagsMap) {
             const precioEntrada = parseFloat(t.precio_entrada);
             const profit = precioEntrada > 0 ? ((parseFloat(t.precio_actual) - precioEntrada) / precioEntrada * 100) : 0;
             const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
             const profitLabel = profit >= 0 ? '+' : '';
             const delay = (idx || 0) * 0.04;
+
+            const nameNorm = (t.nombre || '').toUpperCase().trim();
+            const tagData = coinsTagsMap ? coinsTagsMap[nameNorm] : null;
+            let tagHtml = '';
+            let countHtml = '';
+            if (tagData) {
+                const totalCount = (parseInt(tagData.strong_count) || 0) + (parseInt(tagData.checking_count) || 0) + (parseInt(tagData.okay_count) || 0) + (parseInt(tagData.inestable_count) || 0);
+                countHtml = ` (x${totalCount})`;
+                const parts = [];
+                if (parseInt(tagData.strong_count) > 0) parts.push(`<span style="color:var(--success);font-size:0.65rem;">${tagData.strong_count}xS</span>`);
+                if (parseInt(tagData.okay_count) > 0) parts.push(`<span style="color:var(--accent-primary);font-size:0.65rem;">${tagData.okay_count}xOk</span>`);
+                if (parseInt(tagData.checking_count) > 0) parts.push(`<span style="color:var(--warning);font-size:0.65rem;">${tagData.checking_count}xCh</span>`);
+                if (parseInt(tagData.inestable_count) > 0) parts.push(`<span style="color:var(--error);font-size:0.65rem;">${tagData.inestable_count}xI</span>`);
+                if (parts.length > 0) tagHtml = `<div style="display:flex;gap:4px;margin-top:2px;">${parts.join('')}</div>`;
+            } else {
+                countHtml = ' <span style="color:var(--success);font-size:0.65rem;font-weight:700;">NEW</span>';
+            }
 
             return `
                 <div class="token-card" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;animation-delay:${delay}s">
@@ -2377,14 +2435,16 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div class="token-icon" id="token-icon-${t.id}">${(t.nombre || '?')[0]}</div>
                             <div>
-                                <div class="token-name">${t.nombre || 'Token'}</div>
+                                <div class="token-name">${t.nombre || 'Token'}${countHtml}</div>
+                                ${tagHtml}
                                 <div class="token-symbol">${t.simbolo || ''}</div>
                             </div>
                         </div>
                         <span class="chain-badge ${getChainClass(t.chain_id)}">${t.chain_id}</span>
                     </div>
                     <div class="token-price">$${formatPrice(t.precio_actual)} <span class="profit-badge ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
-                    ${(currentUser.nivel === 'admin' || currentUser.is_admin) ? `
+                    ${t.monto_invertido ? `<div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0;">Entry: $${parseFloat(t.monto_invertido).toFixed(2)} → $${(parseFloat(t.monto_invertido) * (1 + profit/100)).toFixed(2)}</div>` : ''}
+                    ${currentUser.nivel === 'admin' ? `
                         <button class="btn-delete" onclick="event.stopPropagation();forceExitToken(${t.id},'${(t.nombre || t.simbolo || 'Token').replace(/'/g, "\\'")}')" 
                                 style="margin-top:6px;font-size:11px;padding:4px 10px;width:100%;">Exit</button>
                     ` : ''}
@@ -2419,7 +2479,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
                     }
                 })
-                .catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+                .catch(err => Swal.fire({ icon: 'error', title: 'Network error', text: err.message || 'unknown' }));
             });
         }
 
@@ -2442,8 +2502,135 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
                     }
                 })
-                .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+                .catch(err => Swal.fire({ icon: 'error', title: 'Network error', text: err.message || 'unknown' }));
             });
+        }
+
+        // Manual ban token (admin only)
+        function banearTokenManual() {
+            const address = document.getElementById('banTokenAddress').value.trim();
+            const name = document.getElementById('banTokenName').value.trim();
+            const status = document.getElementById('banTokenStatus');
+            if (!address) { status.textContent = 'Enter a token address'; return; }
+            status.textContent = 'Banning...';
+            fetch('api/admin.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: JSON.stringify({ action: 'banear_token', token_address: address, nombre: name || null })
+            })
+            .then(async r => {
+                const text = await r.text();
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        status.textContent = 'Token banned successfully';
+                        document.getElementById('banTokenAddress').value = '';
+                        document.getElementById('banTokenName').value = '';
+                        loadConfigData();
+                    } else {
+                        status.textContent = data.error || 'Error';
+                    }
+                } catch (e) {
+                    status.textContent = 'Server error: ' + text.substring(0, 80);
+                }
+            })
+            .catch(err => { status.textContent = 'Network error: ' + (err.message || 'unknown'); });
+        }
+
+        // Export banned tokens as JSON
+        function exportBannedTokens() {
+            const status = document.getElementById('banTokenStatus');
+            status.textContent = 'Exporting...';
+            fetch('api/admin.php?action=tokens_banned', {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.tokens_banned.length) {
+                    status.textContent = 'No banned tokens to export';
+                    return;
+                }
+                const blob = new Blob([JSON.stringify(data.tokens_banned, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'banned_tokens.json';
+                a.click();
+                status.textContent = 'Exported ' + data.tokens_banned.length + ' tokens';
+                loadConfigData();
+            })
+            .catch(() => { status.textContent = 'Export error'; });
+        }
+
+        // Import banned tokens from JSON file
+        function importBannedTokens() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const status = document.getElementById('banTokenStatus');
+                    status.textContent = 'Importing...';
+                    try {
+                        const tokens = JSON.parse(ev.target.result);
+                        if (!Array.isArray(tokens) || !tokens.length) {
+                            status.textContent = 'Invalid file: empty or not an array';
+                            return;
+                        }
+                        fetch('api/admin.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                            body: JSON.stringify({ action: 'import_banned', tokens: tokens })
+                        })
+                        .then(async r => {
+                            const text = await r.text();
+                            try {
+                                const data = JSON.parse(text);
+                                if (data.success) {
+                                    status.textContent = 'Imported: ' + data.imported + ', Skipped (duplicates): ' + data.skipped;
+            if (currentUser.nivel !== 'free') loadConfigData();
+                                } else {
+                                    status.textContent = 'Error: ' + (data.error || 'Unknown');
+                                }
+                            } catch (e) {
+                                status.textContent = 'Server error: ' + text.substring(0, 80);
+                            }
+                        })
+                        .catch(err => { status.textContent = 'Network error: ' + (err.message || 'unknown'); });
+                    } catch (err) {
+                        status.textContent = 'Invalid JSON file';
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Delete/unban a single banned token
+        function deleteBannedToken(id) {
+            if (!confirm('Unban this token?')) return;
+            fetch('api/admin.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: JSON.stringify({ action: 'delete_banned', id: id })
+            })
+            .then(async r => {
+                const text = await r.text();
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        document.getElementById('banTokenStatus').textContent = 'Token unbanned';
+                        loadConfigData();
+                    } else {
+                        document.getElementById('banTokenStatus').textContent = data.error || 'Error';
+                    }
+                } catch (e) {
+                    document.getElementById('banTokenStatus').textContent = 'Server error: ' + text.substring(0, 80);
+                }
+            })
+            .catch(err => { document.getElementById('banTokenStatus').textContent = 'Network error: ' + (err.message || 'unknown'); });
         }
 
         // Config: reveal API key
@@ -2586,8 +2773,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 }
                 setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 5000);
             })
-            .catch(() => {
-                status.textContent = '✗ Connection error';
+            .catch(err => {
+                status.textContent = '✗ Network error: ' + (err.message || 'unknown');
                 status.style.color = 'var(--error)';
                 setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 5000);
             })
@@ -2596,72 +2783,120 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
         // Show token detail modal (admin only)
         function showTokenDetail(historialId) {
-            fetch('api/tokens.php?action=detail&id=' + historialId, {
-                headers: { 'Authorization': currentToken }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.success) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
+            Promise.all([
+                fetch('api/tokens.php?action=detail&id=' + historialId, { headers: { 'Authorization': currentToken } }).then(r => r.json()),
+                fetch('api/tokens.php?action=token_info&chain_id=solana&token_address=', { headers: { 'Authorization': currentToken } }).then(r => r.json()).catch(() => null)
+            ])
+            .then(([detailData]) => {
+                if (!detailData.success) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: detailData.error || 'Unknown error' });
                     return;
                 }
-                const d = data.detail;
-                const extra = data.token_extra;
+                const d = detailData.detail;
+                const extra = detailData.token_extra;
                 const profit = parseFloat(d.profit_porcentaje);
                 const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
                 const profitLabel = profit >= 0 ? '+' : '';
 
-                Swal.fire({
-                    title: (d.nombre || d.simbolo || 'Token') + ' <span style="font-size:0.7rem;opacity:0.6">' + (d.chain_id || '') + '</span>',
-                    html: `
-                        <div class="detail-modal">
-                            <div class="detail-section">
-                                <div class="detail-section-title">🔍 Discovery</div>
-                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${extra?.creado_en ? formatDate(extra.creado_en) : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">${d.precio_descubrimiento ? '$' + parseFloat(d.precio_descubrimiento).toFixed(8) : 'N/A'}</span></div>
+                // Fetch social links for this token
+                fetch('api/tokens.php?action=token_info&chain_id=' + encodeURIComponent(d.chain_id) + '&token_address=' + encodeURIComponent(d.token_address), {
+                    headers: { 'Authorization': currentToken }
+                })
+                .then(r => r.json())
+                .then(infoData => {
+                    const links = infoData.links || [];
+                    const twitter = links.find(l => l.type === 'twitter');
+                    const website = links.find(l => l.label === 'Website' || l.type === 'website');
+                    const telegram = links.find(l => l.type === 'telegram');
+                    let linksHtml = '';
+                    const twitterCreated = infoData.twitter_created_at || null;
+                    if (twitter || website || telegram || twitterCreated) {
+                        linksHtml = '<div class="detail-section"><div class="detail-section-title">Links</div>';
+                        if (twitter) linksHtml += `<div class="detail-row"><span class="detail-label">Twitter</span><span class="detail-value"><a href="${twitter.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${twitter.url.substring(0, 30)}...</a></span></div>`;
+                        if (twitterCreated) linksHtml += `<div class="detail-row"><span class="detail-label">Twitter Created</span><span class="detail-value">${formatDate(twitterCreated)}</span></div>`;
+                        if (telegram) linksHtml += `<div class="detail-row"><span class="detail-label">Telegram</span><span class="detail-value"><a href="${telegram.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${telegram.url.substring(0, 30)}...</a></span></div>`;
+                        if (website) linksHtml += `<div class="detail-row"><span class="detail-label">Website</span><span class="detail-value"><a href="${website.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${website.url.substring(0, 30)}...</a></span></div>`;
+                        linksHtml += '</div>';
+                    }
+
+                    Swal.fire({
+                        title: (d.nombre || d.simbolo || 'Token') + ' <span style="font-size:0.7rem;opacity:0.6">' + (d.chain_id || '') + '</span>',
+                        html: `
+                            <div class="detail-modal">
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Discovery</div>
+                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${extra?.creado_en ? formatDate(extra.creado_en) : 'N/A'}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">${d.precio_descubrimiento ? '$' + parseFloat(d.precio_descubrimiento).toFixed(8) : 'N/A'}</span></div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Entry</div>
+                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_entrada ? formatDate(d.fecha_entrada) : 'N/A'}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_entrada ? parseFloat(d.precio_entrada).toFixed(8) : 'N/A'}</span></div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Peak</div>
+                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${extra?.precio_maximo ? parseFloat(extra.precio_maximo).toFixed(8) : 'N/A'}</span></div>
+                                </div>
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Exit</div>
+                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_salida ? formatDate(d.fecha_salida) : 'N/A'}</span></div>
+                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_salida ? parseFloat(d.precio_salida).toFixed(8) : 'N/A'}</span></div>
+                                </div>
+                                ${linksHtml}
+                                    <div class="detail-section">
+                                        <div class="detail-section-title">Summary</div>
+                                        <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
+                                        ${d.monto_invertido ? `<div class="detail-row"><span class="detail-label">Entry Amount</span><span class="detail-value">$${parseFloat(d.monto_invertido).toFixed(2)}</span></div>` : ''}
+                                        ${d.monto_invertido ? `<div class="detail-row"><span class="detail-label">Return Amount</span><span class="detail-value" class="${profitClass}">$${(parseFloat(d.monto_invertido) + parseFloat(d.profit_dolares || 0)).toFixed(2)}</span></div>` : ''}
+                                    <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
+                                    <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
+                                    ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}
+                                    ${d.es_reentry ? `<div class="detail-row"><span class="detail-label">Re-entry</span><span class="detail-value">Yes</span></div>` : ''}
+                                </div>
                             </div>
-                            <div class="detail-section">
-                                <div class="detail-section-title">🚪 Entry</div>
-                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_entrada ? formatDate(d.fecha_entrada) : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_entrada ? parseFloat(d.precio_entrada).toFixed(8) : 'N/A'}</span></div>
-                            </div>
-                            <div class="detail-section">
-                                <div class="detail-section-title">📈 Peak</div>
-                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${extra?.precio_maximo ? parseFloat(extra.precio_maximo).toFixed(8) : 'N/A'}</span></div>
-                            </div>
-                            <div class="detail-section">
-                                <div class="detail-section-title">🏁 Exit</div>
-                                <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_salida ? formatDate(d.fecha_salida) : 'N/A'}</span></div>
-                                <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_salida ? parseFloat(d.precio_salida).toFixed(8) : 'N/A'}</span></div>
-                            </div>
-                            <div class="detail-section">
-                                <div class="detail-section-title">📊 Summary</div>
-                                <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
-                                <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
-                                <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
-                                ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}
-                                ${d.es_reentry ? `<div class="detail-row"><span class="detail-label">Re-entry</span><span class="detail-value">Yes (x${d.reentry_count || 1})</span></div>` : ''}
-                            </div>
-                        </div>
-                    `,
-                    width: 480,
-                    padding: '24px',
-                    background: 'var(--bg-primary)',
-                    showCloseButton: true,
-                    showConfirmButton: false,
-                    customClass: { popup: 'swal-detail' }
+                        `,
+                        width: 480,
+                        padding: '24px',
+                        background: 'var(--bg-primary)',
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        customClass: { popup: 'swal-detail' }
+                    });
+                })
+                .catch(() => {
+                    Swal.fire({
+                        title: (d.nombre || d.simbolo || 'Token') + ' <span style="font-size:0.7rem;opacity:0.6">' + (d.chain_id || '') + '</span>',
+                        html: `<div class="detail-modal">
+                            <div class="detail-section"><div class="detail-section-title">Summary</div>
+                            <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
+                            <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
+                            <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
+                            ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}</div></div>`,
+                        width: 480, padding: '24px', background: 'var(--bg-primary)',
+                        showCloseButton: true, showConfirmButton: false,
+                        customClass: { popup: 'swal-detail' }
+                    });
                 });
             })
-            .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: 'Connection error' }));
+            .catch(err => Swal.fire({ icon: 'error', title: 'Network error', text: err.message || 'unknown' }));
         }
 
-        // Admin
-        function loadAdmin() {
-            const isAdminLa = currentUser.is_admin || currentUser.nivel === 'admin';
+        // Config Data
+        function loadConfigData() {
+            const isAdminCd = currentUser.nivel === 'admin';
+            const isProCd = currentUser.nivel === 'vip';
+            
+            // Show/hide manual coin section (Pro and Admin)
+            const manualCoinSection = document.getElementById('manualCoinSection');
+            if (manualCoinSection) manualCoinSection.style.display = (isProCd || isAdminCd) ? 'block' : 'none';
+            
+            // Show/hide admin-only sections
             const addBtn = document.getElementById('addUserBtn');
-            if (addBtn) addBtn.style.display = isAdminLa ? '' : 'none';
+            if (addBtn) addBtn.style.display = isAdminCd ? '' : 'none';
             const userMgmt = document.querySelector('.admin-users');
-            if (userMgmt) userMgmt.style.display = isAdminLa ? '' : 'none';
+            if (userMgmt) userMgmt.style.display = isAdminCd ? '' : 'none';
+            const adminStats = document.getElementById('adminStats');
+            if (adminStats) adminStats.style.display = isAdminCd ? '' : 'none';
 
             // Heartbeat - señal del servidor
             fetch('api/tokens.php?action=server', {
@@ -2705,7 +2940,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 if (!data.success) return;
                 const c = data.criteria;
                 const editable = data.editable_fields || [];
-                const plan = currentUser.plan || 'basic';
                 const fields = [
                     { key: 'stop_loss_pct', label: 'Stop Loss (%)', suffix: '%', negative: true },
                     { key: 'take_profit_pct', label: 'Take Profit (%)', suffix: '%', positive: true },
@@ -2739,15 +2973,15 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             .then(r => r.json())
             .then(data => {
                 if (!data.success) return;
-                const nivelNames = { 1: 'Basic', 2: 'Pro', 3: 'Ultra' };
+                const nivelLabels = { 'admin': 'Admin', 'vip': 'Pro', 'free': 'Free' };
                 document.getElementById('usersTable').innerHTML = data.usuarios.map(u => `
                     <tr>
                         <td data-label="Username">${u.username}</td>
-                        <td data-label="Level"><span class="level level-${u.nivel === 'admin' ? 'admin' : (u.nivel_detalle || 1)}">${u.nivel === 'admin' ? 'Admin' : (nivelNames[u.nivel_detalle] || 'Basic')}</span></td>
+                        <td data-label="Level"><span class="level level-${u.nivel === 'admin' ? 'admin' : (u.nivel === 'vip' ? 'pro' : 'free')}">${nivelLabels[u.nivel] || 'Free'}</span></td>
                         <td data-label="Status">${u.activo ? 'Active' : 'Inactive'}</td>
                         <td data-label="Last Login">${u.ultimo_login || 'Never'}</td>
                         <td data-label="Actions">
-                            <button class="btn-edit" onclick="editUser(${u.id}, '${u.username}', '${u.nivel}', ${u.nivel_detalle || 1})">Edit</button>
+                            <button class="btn-edit" onclick="editUser(${u.id}, '${u.username}', '${u.nivel}')">Edit</button>
                             ${u.id !== currentUser.id ? `<button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>` : ''}
                         </td>
                     </tr>
@@ -2763,11 +2997,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 if (!data.success) return;
                 document.getElementById('bannedTable').innerHTML = data.tokens_banned.map(t => `
                     <tr>
+                        <td data-label="Name">${t.nombre || 'N/A'}</td>
                         <td data-label="Token Address"><span class="address" title="${t.token_address}">${t.token_address.substring(0, 12)}...</span></td>
                         <td data-label="Pair Address"><span class="address" title="${t.pair_address}">${t.pair_address.substring(0, 12)}...</span></td>
                         <td data-label="Chain">${t.chain_id}</td>
                         <td data-label="Reason">${t.razon || 'N/A'}</td>
                         <td data-label="Date">${t.banneado_en}</td>
+                        <td data-label="Actions"><button class="btn-delete" onclick="deleteBannedToken(${t.id})" style="padding:5px 12px;font-size:11px;">Unban</button></td>
                     </tr>
                 `).join('');
             });
@@ -2792,16 +3028,12 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             const username = document.getElementById('modalUsername').value;
             const pin = document.getElementById('modalPin').value;
             const nivel = document.getElementById('modalNivel').value;
-            const nivelDetalle = document.getElementById('modalNivelDetalleSelect')?.value || (nivel === 'vip' ? 1 : null);
-
-            console.log('Saving user - nivelDetalle:', nivelDetalle, 'nivel:', nivel);
 
             const action = editingUserId ? 'editar_usuario' : 'crear_usuario';
             const body = editingUserId
-                ? { action, id: editingUserId, pin, nivel, nivel_detalle: nivelDetalle }
-                : { action, username, pin, nivel, nivel_detalle: nivelDetalle };
+                ? { action, id: editingUserId, pin, nivel }
+                : { action, username, pin, nivel };
 
-            console.log('Request body:', JSON.stringify(body));
 
             const res = await fetch('api/admin.php', {
                 method: 'POST',
@@ -2813,24 +3045,19 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
 
             if (data.success) {
                 document.getElementById('userModal').classList.remove('active');
-                loadAdmin();
+                loadConfigData();
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.error });
             }
         });
 
-        window.editUser = (id, username, nivel, nivelDetalle = 1) => {
+        window.editUser = (id, username, nivel) => {
             editingUserId = id;
             document.getElementById('modalTitle').textContent = 'Edit User';
             document.getElementById('modalUsername').value = username;
             document.getElementById('modalUsername').disabled = true;
             document.getElementById('modalPin').value = '';
             document.getElementById('modalNivel').value = nivel;
-            document.getElementById('modalNivel').dispatchEvent(new Event('change'));
-            document.getElementById('modalNivelDetalle').style.display = nivel === 'vip' ? 'block' : 'none';
-            if (document.getElementById('modalNivelDetalleSelect')) {
-                document.getElementById('modalNivelDetalleSelect').value = String(nivelDetalle);
-            }
             document.getElementById('userModal').classList.add('active');
         };
 
@@ -2843,21 +3070,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 body: JSON.stringify({ action: 'eliminar_usuario', id })
             });
             const data = await res.json();
-            if (data.success) loadAdmin();
+            if (data.success) loadConfigData();
             else Swal.fire({ icon: 'error', title: 'Error', text: data.error });
         };
-
-        // Countdown
-        function startCountdown() {
-            if (intervalId) clearInterval(intervalId);
-            intervalId = setInterval(() => {
-                if (tiempoRestante > 0) {
-                    tiempoRestante--;
-                    const el = document.getElementById('countdown');
-                    if (el) el.textContent = formatTime(tiempoRestante);
-                }
-            }, 1000);
-        }
 
         // Helpers
         function formatPrice(p) {
@@ -2873,13 +3088,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
             if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
             return num.toFixed(2);
-        }
-
-        function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            return `${h}h ${m}m ${s}s`;
         }
 
         function formatDate(dateStr) {
@@ -2947,7 +3155,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         // Scroll entrance animations
         try {
             if ('IntersectionObserver' in window) {
-                const animateOnScroll = document.querySelectorAll('.stat-card, .token-card, .criterio-card, .disclaimer, .free-token-card, .modal-content');
+                const animateOnScroll = document.querySelectorAll('.stat-card, .token-card, .criterio-card, .disclaimer, .modal-content');
                 animateOnScroll.forEach(el => el.classList.add('animate-on-scroll'));
                 
                 const observer = new IntersectionObserver((entries) => {
@@ -3045,7 +3253,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             tick();
         };
 
-        console.log('AltChecks: Init complete');
+        console.log('AltiChecker: Init complete');
     </script>
 </body>
 </html>

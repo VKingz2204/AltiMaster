@@ -3,20 +3,78 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 date_default_timezone_set('America/Bogota');
 
-require_once __DIR__ . '/../api/config.php';
+require_once __DIR__ . '/shared.php';
+
+$pidFile = __DIR__ . '\alpha.pid';
+file_put_contents($pidFile, getmypid());
+
+echo "[" . date('Y-m-d H:i:s') . "] Starting AltiChecker Search Server...\n";
+echo "[" . date('Y-m-d H:i:s') . "] PID: " . getmypid() . "\n";
+echo "DB connected: " . (isset($pdo) ? "YES" : "NO") . "\n";
+
+updateServerStatus(true);
+$pdo->query("UPDATE servidor_status SET ultimo_inicio = NOW() WHERE id = 1");
+logSistema('info', 'Servidor de busqueda iniciado');
 
 $tpPorcentaje = (float)getConfig('tp_porcentaje') ?: 40;
+$tpReentry = (float)getConfig('tp_reentry_porcentaje') ?: 20;
+$slPorcentaje = (float)getConfig('sl_porcentaje') ?: 10;
+$reentryMin = (float)getConfig('reentry_subida_min') ?: 5;
+$crashPorcentaje = (float)getConfig('crash_porcentaje') ?: -4000;
 
-echo "[" . date('Y-m-d H:i:s') . "] 🔍 Background search started (PID: " . getmypid() . ")\n";
-file_put_contents(__DIR__ . '/.search_lock', getmypid());
+while (true) {
+    try {
+        $pdo->query("UPDATE servidor_status SET ultimo_check = NOW() WHERE id = 1");
 
-buscarNuevosTokens($pdo, $tpPorcentaje);
+        if (!isSearchRunning()) {
+            echo "[" . date('Y-m-d H:i:s') . "] === SEARCH CYCLE ===\n";
+            echo "[" . date('Y-m-d H:i:s') . "] 1. Launching background token search...\n";
 
-echo "[" . date('Y-m-d H:i:s') . "] Background search finished\n";
-@unlink(__DIR__ . '/.search_lock');
+            $phpCmd = 'C:\xampp\php\php.exe';
+            $scriptPath = __DIR__ . '\buscador_tokens.php';
+            $logPath = __DIR__ . '\buscador.log';
+            pclose(popen("start /B \"\" \"$phpCmd\" \"$scriptPath\" > \"$logPath\" 2>&1", "r"));
+
+            echo "[" . date('Y-m-d H:i:s') . "] 2. Processing manual coins...\n";
+            procesarManualCoins($pdo);
+        }
+
+        echo "[" . date('Y-m-d H:i:s') . "] 3. Checking new tokens for entry...\n";
+        procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $reentryMin, $crashPorcentaje);
+
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM tokens WHERE estado = 'monitoreando'");
+        $count = $stmt->fetch();
+        $pdo->query("UPDATE servidor_status SET tokens_activos = " . $count['count'] . " WHERE id = 1");
+
+        try {
+            $expiredCount = expireStaleSignals($pdo);
+            if ($expiredCount > 0) {
+                echo "[" . date('Y-m-d H:i:s') . "] Expired $expiredCount stale signals\n";
+            }
+        } catch (Exception $e) {
+            echo "[" . date('Y-m-d H:i:s') . "] Signal expiry skipped: " . $e->getMessage() . "\n";
+        }
+
+    } catch (Exception $e) {
+        echo "[" . date('Y-m-d H:i:s') . "] Error: " . $e->getMessage() . "\n";
+        logSistema('error', 'Error en servidor busqueda: ' . $e->getMessage());
+    }
+
+    sleep(5);
+}
+
+function isSearchRunning() {
+    $lockFile = __DIR__ . '/.search_lock';
+    if (!file_exists($lockFile)) return false;
+    if (time() - filemtime($lockFile) > 120) {
+        @unlink($lockFile);
+        return false;
+    }
+    return true;
+}
 
 function buscarNuevosTokens($pdo, $tpPorcentaje) {
-    echo "[" . date('Y-m-d H:i:s') . "] 🔍 Querying DexScreener APIs...\n";
+    echo "[" . date('Y-m-d H:i:s') . "] Querying DexScreener APIs...\n";
 
     $endpoints = [
         'token-profiles' => 'https://api.dexscreener.com/token-profiles/latest/v1',
@@ -35,13 +93,13 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
         $response = @file_get_contents($url);
 
         if (!$response) {
-            echo "[" . date('Y-m-d H:i:s') . "]   ✗ $nombre: Sin respuesta\n";
+            echo "[" . date('Y-m-d H:i:s') . "]   - $nombre: Sin respuesta\n";
             continue;
         }
 
         $data = json_decode($response, true);
         if (!$data) {
-            echo "[" . date('Y-m-d H:i:s') . "]   ✗ $nombre: Error al decodificar\n";
+            echo "[" . date('Y-m-d H:i:s') . "]   - $nombre: Error al decodificar\n";
             continue;
         }
 
@@ -55,7 +113,7 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
         elseif (is_array($data)) $items = $data;
 
         $count = is_array($items) ? count($items) : 0;
-        echo "[" . date('Y-m-d H:i:s') . "]   ✓ $nombre: $count tokens\n";
+        echo "[" . date('Y-m-d H:i:s') . "]   - $nombre: $count tokens\n";
         $totalEncontrados += $count;
 
         if (!is_array($items)) continue;
@@ -66,7 +124,7 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
 
             if (!$chainId || !$tokenAddress) continue;
 
-            echo "[" . date('Y-m-d H:i:s') . "]     → Getting data for: $tokenAddress...\n";
+            echo "[" . date('Y-m-d H:i:s') . "]     -> Getting data for: $tokenAddress...\n";
             $tokenData = obtenerDatosToken($chainId, $tokenAddress);
 
             if (!$tokenData || !isset($tokenData[0])) continue;
@@ -95,8 +153,8 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             if ($liquidez < $liquidezMinima) continue;
 
             $pairCreatedAt = $pairData['pairCreatedAt'] ?? 0;
-            if ($pairCreatedAt > 0 && (time() * 1000 - $pairCreatedAt) > 6 * 3600 * 1000) {
-                echo "[" . date('Y-m-d H:i:s') . "]     -> Skipped (older than 6h): " . ($pairData['baseToken']['name'] ?? $pairData['baseToken']['symbol'] ?? $tokenAddress) . "\n";
+            if ($pairCreatedAt > 0 && (time() * 1000 - $pairCreatedAt) > 24 * 3600 * 1000) {
+                echo "[" . date('Y-m-d H:i:s') . "]     -> Skipped (older than 24h): " . ($pairData['baseToken']['name'] ?? $pairData['baseToken']['symbol'] ?? $tokenAddress) . "\n";
                 continue;
             }
 
@@ -118,7 +176,7 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
     }
 
     if (!empty($tokensNuevos)) {
-        foreach ($tokensNuevos as $idx => $token) {
+        foreach ($tokensNuevos as $token) {
             $stmtCheck = $pdo->prepare("SELECT id, estado FROM tokens WHERE pair_address = ?");
             $stmtCheck->execute([$token['pair_address']]);
             $existingTokens = $stmtCheck->fetchAll();
@@ -133,7 +191,7 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
                 echo "[" . date('Y-m-d H:i:s') . "] Removed old entry for re-study: " . ($token['nombre'] ?? $token['simbolo']) . "\n";
             }
             if ($shouldSkip) continue;
-            
+
             try {
                 $sql = "INSERT INTO tokens (
                     chain_id, token_address, pair_address,
@@ -151,17 +209,16 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
                 ];
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
-                $nuevoId = $pdo->lastInsertId();
-                
+
                 registrarCoinRevisada(
                     $pdo, $token['pair_address'], $token['chain_id'],
                     $token['nombre'] ?? $token['simbolo'], $token['precio'],
                     $token['market_cap'], $token['liquidez'],
                     $token['cambio_1h'], $token['cambio_6h'], $token['cambio_24h'],
-                    'nuevo', 'Nuevo token detectado (esperando +1.5%)'
+                    'nuevo', 'Nuevo token detectado'
                 );
-                
-                echo "[" . date('Y-m-d H:i:s') . "] 🆕 New token: " . ($token['nombre'] ?? $token['simbolo']) . " (waiting +1.5%)\n";
+
+                echo "[" . date('Y-m-d H:i:s') . "] New token: " . ($token['nombre'] ?? $token['simbolo']) . "\n";
             } catch (Exception $e) {
                 echo "[" . date('Y-m-d H:i:s') . "] Error INSERT token: " . $e->getMessage() . "\n";
                 continue;
@@ -170,33 +227,8 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
     }
 
     if (count($tokensNuevos) > 0) {
-        echo "[" . date('Y-m-d H:i:s') . "] 💾 Saving " . count($tokensNuevos) . " new tokens to DB...\n";
+        echo "[" . date('Y-m-d H:i:s') . "] Saving " . count($tokensNuevos) . " new tokens to DB...\n";
     } else {
-        echo "[" . date('Y-m-d H:i:s') . "] ✓ No new tokens\n";
-    }
-}
-
-function obtenerDatosToken($chainId, $tokenAddress) {
-    $url = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddress";
-    $response = @file_get_contents($url);
-    if (!$response) return null;
-
-    $data = json_decode($response, true);
-    return $data;
-}
-
-function registrarCoinRevisada($pdo, $pairAddress, $chainId, $nombre, $precio, $marketCap, $liquidez, $cambio1h, $cambio6h, $cambio24h, $accion, $razon = null) {
-    try {
-        $pdo->prepare("
-            INSERT INTO coins_revisadas (
-                pair_address, chain_id, nombre, precio, market_cap, liquidez,
-                cambio_1h, cambio_6h, cambio_24h, accion, razon, revisado_en
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-        ")->execute([
-            $pairAddress, $chainId, $nombre, $precio, $marketCap, $liquidez,
-            $cambio1h, $cambio6h, $cambio24h, $accion, $razon
-        ]);
-    } catch (Exception $e) {
-        echo "[" . date('Y-m-d H:i:s') . "] coins_revisadas error: " . $e->getMessage() . "\n";
+        echo "[" . date('Y-m-d H:i:s') . "] No new tokens\n";
     }
 }

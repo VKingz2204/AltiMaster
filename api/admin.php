@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../servidor/shared.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -10,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-session_start();
+@session_start();
 
 $headers = getallheaders();
 $token = $headers['Authorization'] ?? $headers['Token'] ?? null;
@@ -27,11 +28,11 @@ $users = $stmt->fetchAll();
 $isAdmin = false;
 $userNivel = '';
 foreach ($users as $u) {
-    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altchecks_secret');
+    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altiChecker_secret');
     if ($token === $expectedToken) {
+        $userNivel = $u['nivel'];
         if ($u['nivel'] === 'admin') {
             $isAdmin = true;
-            $userNivel = $u['nivel'];
         }
         break;
     }
@@ -176,7 +177,7 @@ if ($method === 'POST') {
                 exit;
             }
 
-            $nivelDetalle = $input['nivel_detalle'] ?? ($input['nivel'] === 'vip' ? 2 : 1);
+            $nivelDetalle = $input['nivel_detalle'] ?? ($input['nivel'] === 'vip' ? 2 : ($input['nivel'] === 'free' ? 1 : 0));
             $stmt = $pdo->prepare("INSERT INTO usuarios (username, pin, nivel, nivel_detalle) VALUES (?, ?, ?, ?)");
             $stmt->execute([$input['username'], $input['pin'], $input['nivel'], $nivelDetalle]);
 
@@ -196,7 +197,7 @@ if ($method === 'POST') {
                 exit;
             }
 
-            $nivelDetalle = $input['nivel_detalle'] ?? ($input['nivel'] === 'vip' ? 2 : 1);
+            $nivelDetalle = $input['nivel_detalle'] ?? ($input['nivel'] === 'vip' ? 2 : ($input['nivel'] === 'free' ? 1 : 0));
             $stmt = $pdo->prepare("UPDATE usuarios SET pin = ?, nivel = ?, nivel_detalle = ? WHERE id = ?");
             $stmt->execute([$input['pin'], $input['nivel'], $nivelDetalle, $input['id']]);
 
@@ -266,11 +267,17 @@ if ($method === 'POST') {
                 exit;
             }
             
-            $stmt = $pdo->prepare("SELECT token_address, pair_address, chain_id, nombre FROM historial_tokens WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT token_address, pair_address, chain_id, nombre, monto_invertido, profit_dolares FROM historial_tokens WHERE id = ?");
             $stmt->execute([$input['historial_id']]);
             $h = $stmt->fetch();
             if ($h) {
-                adminBanearToken($pdo, $h['token_address'], $h['pair_address'], $h['chain_id'], 'Banned for admin');
+                adminBanearToken($pdo, $h['token_address'], $h['pair_address'], $h['chain_id'], 'Banned for admin', $h['nombre']);
+                
+                $profitDol = (float)($h['profit_dolares'] ?? 0);
+                if ($profitDol < 0) {
+                    $refund = abs($profitDol);
+                    updateWallet($pdo, $refund, 'profit', $h['nombre'], $h['token_address'], 0, 'Ban refund', $refund);
+                }
             }
             
             $stmt = $pdo->prepare("DELETE FROM historial_tokens WHERE id = ?");
@@ -280,22 +287,15 @@ if ($method === 'POST') {
             break;
 
         case 'insertar_token_manual':
-            if (!$isAdmin) {
+            if (!$isAdmin && $userNivel !== 'vip') {
                 http_response_code(403);
-                echo json_encode(['error' => 'Solo admin']);
+                echo json_encode(['error' => 'Solo admin o pro']);
                 exit;
             }
             $tokenAddress = trim($input['token_address'] ?? '');
             if (empty($tokenAddress)) {
                 http_response_code(400);
                 echo json_encode(['error' => 'Falta token_address']);
-                exit;
-            }
-            $stmt = $pdo->prepare("SELECT id FROM tokens WHERE token_address = ?");
-            $stmt->execute([$tokenAddress]);
-            if ($stmt->fetch()) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Token ya existe en el sistema']);
                 exit;
             }
             $stmt = $pdo->prepare("INSERT INTO manual_coins (token_address, estado) VALUES (?, 'pendiente')");
@@ -305,6 +305,53 @@ if ($method === 'POST') {
                 'message' => 'Coin agregada a la cola. El servidor la procesará en breve.',
                 'id' => $pdo->lastInsertId()
             ]);
+            break;
+
+        case 'import_banned':
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Solo admin']);
+                exit;
+            }
+            $tokens = $input['tokens'] ?? [];
+            if (!is_array($tokens) || empty($tokens)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Array de tokens requerido']);
+                exit;
+            }
+            $imported = 0;
+            $skipped = 0;
+            foreach ($tokens as $t) {
+                $addr = trim($t['token_address'] ?? '');
+                if (empty($addr)) { $skipped++; continue; }
+                $stmt = $pdo->prepare("SELECT 1 FROM tokens_banned WHERE token_address = ?");
+                $stmt->execute([$addr]);
+                if ($stmt->fetch()) { $skipped++; continue; }
+                $nombre = trim($t['nombre'] ?? null);
+                $pair = trim($t['pair_address'] ?? $addr);
+                $chain = trim($t['chain_id'] ?? 'solana');
+                $razon = trim($t['razon'] ?? 'Imported');
+                $pdo->prepare("INSERT INTO tokens_banned (token_address, pair_address, chain_id, razon, nombre, banneado_en) VALUES (?, ?, ?, ?, ?, NOW())")
+                    ->execute([$addr, $pair, $chain, $razon, $nombre ?: null]);
+                $imported++;
+            }
+            echo json_encode(['success' => true, 'imported' => $imported, 'skipped' => $skipped]);
+            break;
+
+        case 'delete_banned':
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Solo admin']);
+                exit;
+            }
+            $id = (int)($input['id'] ?? 0);
+            if (!$id) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Falta id']);
+                exit;
+            }
+            $pdo->prepare("DELETE FROM tokens_banned WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true]);
             break;
 
         case 'force_exit':
@@ -342,18 +389,32 @@ if ($method === 'POST') {
             echo json_encode(['success' => true, 'message' => 'Token exited manually']);
             break;
 
+        case 'banear_token':
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Solo admin']);
+                exit;
+            }
+            $banTokenAddress = trim($input['token_address'] ?? '');
+            if (empty($banTokenAddress)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Falta token_address']);
+                exit;
+            }
+            $banPairAddress = trim($input['pair_address'] ?? '');
+            $banChainId = trim($input['chain_id'] ?? 'solana');
+            $banRazon = trim($input['razon'] ?? 'Baneado manualmente');
+            $banNombre = trim($input['nombre'] ?? null);
+            if (empty($banPairAddress)) $banPairAddress = $banTokenAddress;
+            adminBanearToken($pdo, $banTokenAddress, $banPairAddress, $banChainId, $banRazon, $banNombre);
+            echo json_encode(['success' => true, 'message' => 'Token baneado']);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Acción no válida']);
     }
     exit;
-}
-
-function obtenerDatosToken($chainId, $tokenAddress) {
-    $url = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddress";
-    $response = @file_get_contents($url);
-    if (!$response) return null;
-    return json_decode($response, true);
 }
 
 function manualExitToken($pdo, $token, $precioSalida, $profit) {
@@ -366,47 +427,41 @@ function manualExitToken($pdo, $token, $precioSalida, $profit) {
         ->execute([$token['id']]);
     $stmtFecha = $pdo->query("SELECT fecha_salida FROM tokens WHERE id = {$token['id']}");
     $fechaSalidaDb = $stmtFecha->fetch()['fecha_salida'];
+
+    $montoInvertido = (float)($token['monto_invertido'] ?? 0);
+    $profitDolares = 0;
+    if ($montoInvertido > 0) {
+        $profitDolares = round($montoInvertido * ($profit / 100), 2);
+        $montoRetornado = $montoInvertido + $profitDolares;
+        updateWallet($pdo, $montoRetornado, 'profit', $token['nombre'], $token['token_address'], (int)($token['confianza'] ?? 0), 'Force exit: ' . ($profit >= 0 ? '+' : '') . $profit . '%', $profitDolares);
+    }
+
     $pdo->prepare("
         INSERT INTO historial_tokens (
             id_token_original, chain_id, token_address, pair_address,
             nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
             profit_porcentaje, duracion_minutos, razon_salida, tag,
-            es_reentry, fecha_entrada, fecha_salida
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            es_reentry, fecha_entrada, fecha_salida,
+            monto_invertido, profit_dolares
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ")->execute([
         $token['id'], $token['chain_id'], $token['token_address'], $token['pair_address'],
         $token['nombre'], $token['simbolo'], $token['precio_entrada'],
         $token['precio_descubrimiento'] ?? $token['precio_entrada'], $precioSalida,
         $profit, $duracionMinutos, 'manual', null,
-        $token['es_reentry'], $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb
+        $token['es_reentry'], $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb,
+        $montoInvertido ?: null, $profitDolares ?: null
     ]);
     logSistema('info', 'Token exited manually: ' . $token['nombre'], ['id' => $token['id'], 'profit' => $profit . '%']);
 }
 
-function fetchWithCurl($url, $timeout = 10) {
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => $timeout,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    ]);
-    $result = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($httpCode !== 200) return null;
-    return $result;
-}
-
-function adminBanearToken($pdo, $tokenAddress, $pairAddress, $chainId, $razon) {
+function adminBanearToken($pdo, $tokenAddress, $pairAddress, $chainId, $razon, $nombre = null) {
     try {
-        $stmt = $pdo->prepare("SELECT 1 FROM tokens_banned WHERE pair_address = ? AND chain_id = ?");
-        $stmt->execute([$pairAddress, $chainId]);
+        $stmt = $pdo->prepare("SELECT 1 FROM tokens_banned WHERE token_address = ?");
+        $stmt->execute([$tokenAddress]);
         if (!$stmt->fetch()) {
-            $pdo->prepare("INSERT INTO tokens_banned (token_address, pair_address, chain_id, razon, banneado_en) VALUES (?, ?, ?, ?, NOW())")
-                ->execute([$tokenAddress, $pairAddress, $chainId, $razon]);
+            $pdo->prepare("INSERT INTO tokens_banned (token_address, pair_address, chain_id, razon, nombre, banneado_en) VALUES (?, ?, ?, ?, ?, NOW())")
+                ->execute([$tokenAddress, $pairAddress, $chainId, $razon, $nombre]);
         }
     } catch (PDOException $e) {
         // Silently handle - ban is best-effort

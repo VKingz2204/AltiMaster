@@ -9,11 +9,11 @@ require_once __DIR__ . '/config.php';
 /**
  * Get daily profit limit percentage by plan.
  */
-function getDailyLimit($plan) {
-    switch ($plan) {
-        case 'basic': return 15.0;
-        case 'pro':   return 30.0;
-        case 'ultra': return null; // no limit
+function getDailyLimit($nivel) {
+    switch ($nivel) {
+        case 'free':  return 15.0;
+        case 'vip':   return 30.0;
+        case 'admin': return null; // no limit
         default:      return 15.0;
     }
 }
@@ -65,17 +65,15 @@ function isDailyLimitReached($pdo, $userId, $plan) {
 }
 
 /**
- * Get the user's plan (treating admin as ultra).
+ * Get the user's plan (treating admin as no limit).
  * Returns array with plan and is_admin.
  */
 function getUserPlanData($pdo, $userId) {
-    $stmt = $pdo->prepare("SELECT plan, is_admin FROM usuarios WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT nivel FROM usuarios WHERE id = ?");
     $stmt->execute([$userId]);
     $u = $stmt->fetch();
     if (!$u) return null;
-    $effectivePlan = $u['plan'];
-    if ((bool)$u['is_admin']) $effectivePlan = 'ultra';
-    return ['plan' => $effectivePlan, 'is_admin' => (bool)$u['is_admin']];
+    return ['plan' => $u['nivel'], 'is_admin' => $u['nivel'] === 'admin'];
 }
 
 /**

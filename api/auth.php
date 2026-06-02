@@ -32,7 +32,7 @@ if ($method === 'POST') {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT id, username, pin, nivel, nivel_detalle, plan, is_admin, ultimo_login FROM usuarios WHERE username = ? AND activo = 1");
+    $stmt = $pdo->prepare("SELECT id, username, pin, nivel, nivel_detalle, ultimo_login FROM usuarios WHERE username = ? AND activo = 1");
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
@@ -51,7 +51,7 @@ if ($method === 'POST') {
     $updateStmt = $pdo->prepare("UPDATE usuarios SET ultimo_login = NOW() WHERE id = ?");
     $updateStmt->execute([$user['id']]);
 
-    $token = hash('sha256', $user['id'] . $user['username'] . 'altchecks_secret');
+    $token = hash('sha256', $user['id'] . $user['username'] . 'altiChecker_secret');
     $nivelDetalle = $user['nivel_detalle'] ?? 1;
 
     // Auto-create API key if not exists
@@ -73,8 +73,7 @@ if ($method === 'POST') {
             'username' => $user['username'],
             'nivel' => $user['nivel'],
             'nivel_detalle' => $nivelDetalle,
-            'plan' => $user['plan'] ?? 'basic',
-            'is_admin' => (bool)($user['is_admin'] ?? false),
+            'is_pro' => $user['nivel'] === 'vip',
             'token' => $token,
             'api_key' => $apiKey
         ],
@@ -95,11 +94,11 @@ if ($method === 'GET') {
         exit;
     }
 
-    $stmt = $pdo->query("SELECT id, username, nivel, plan, is_admin FROM usuarios WHERE activo = 1");
+    $stmt = $pdo->query("SELECT id, username, nivel FROM usuarios WHERE activo = 1");
     $users = $stmt->fetchAll();
 
     foreach ($users as $u) {
-        $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altchecks_secret');
+        $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altiChecker_secret');
         if ($token === $expectedToken) {
             echo json_encode([
                 'success' => true,
@@ -107,8 +106,6 @@ if ($method === 'GET') {
                     'id' => $u['id'],
                     'username' => $u['username'],
                     'nivel' => $u['nivel'],
-                    'plan' => $u['plan'] ?? 'basic',
-                    'is_admin' => (bool)($u['is_admin'] ?? false),
                     'token' => $token
                 ]
             ]);

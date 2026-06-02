@@ -1,5 +1,5 @@
 @echo off
-title AltChecks Server - Dashboard
+title AltiChecker Server - Dashboard
 cd /d "%~dp0"
 
 REM Enable ANSI escape sequences in Windows 10+
@@ -8,11 +8,20 @@ if errorlevel 1 (
     reg add "HKCU\Console" /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 )
 
-"C:\xampp\php\php.exe" -d output_buffering=0 servidor.php
+echo ============================================
+echo Starting AltiChecker Servers...
+echo ============================================
 
-if errorlevel 1 (
-    echo.
-    echo Error al iniciar el servidor.
-    echo Presiona cualquier tecla para salir...
-    pause > nul
-)
+echo [1/2] Starting Search Server (Alpha.php)...
+start "AltiChecker-Search" "C:\xampp\php\php.exe" -d output_buffering=0 "%~dp0Alpha.php"
+
+timeout /t 2 /nobreak >nul
+
+echo [2/2] Starting Monitor Server (monitor.php)...
+start "AltiChecker-Monitor" "C:\xampp\php\php.exe" -d output_buffering=0 "%~dp0monitor.php"
+
+echo.
+echo Both servers started successfully.
+echo Close this window or use stop.bat to stop all servers.
+echo.
+pause

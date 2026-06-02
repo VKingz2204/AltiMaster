@@ -165,8 +165,6 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS coins_tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_normalizado VARCHAR(100) NOT NULL UNIQUE,
     strong_count INT DEFAULT 0,
-    destroyed_count INT DEFAULT 0,
-    caution_count INT DEFAULT 0,
     checking_count INT DEFAULT 0,
     okay_count INT DEFAULT 0, inestable_count INT DEFAULT 0,
     ultimo_tag VARCHAR(20) DEFAULT NULL,
@@ -253,6 +251,45 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS manual_coins (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 print_line("    • manual_coins", 'success');
 
+// Wallet tables
+$pdo->exec("CREATE TABLE IF NOT EXISTS wallet (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    saldo DECIMAL(15,2) DEFAULT 1000.00,
+    ultima_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+print_line("    • wallet", 'success');
+
+$pdo->exec("INSERT IGNORE INTO wallet (id, saldo) VALUES (1, 1000.00)");
+print_line("    • wallet: initial balance set", 'success');
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo ENUM('entrada', 'salida', 'profit') NOT NULL,
+    token_nombre VARCHAR(255) DEFAULT NULL,
+    token_address VARCHAR(255) DEFAULT NULL,
+    monto DECIMAL(15,2) DEFAULT NULL,
+    saldo_resultante DECIMAL(15,2) DEFAULT NULL,
+    confianza INT DEFAULT 0,
+    detalle TEXT DEFAULT NULL,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+print_line("    • wallet_transactions", 'success');
+
+// New token columns for wallet
+try { $pdo->exec("ALTER TABLE tokens ADD COLUMN monto_invertido DECIMAL(15,2) DEFAULT NULL AFTER tag"); print_line("    • tokens: monto_invertido column added", 'success'); } catch (PDOException $e) { print_line("    • tokens: monto_invertido column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens ADD COLUMN confianza INT DEFAULT NULL AFTER monto_invertido"); print_line("    • tokens: confianza column added", 'success'); } catch (PDOException $e) { print_line("    • tokens: confianza column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens ADD COLUMN monto_invertido DECIMAL(15,2) DEFAULT NULL AFTER fecha_salida"); print_line("    • historial_tokens: monto_invertido column added", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: monto_invertido column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE historial_tokens ADD COLUMN profit_dolares DECIMAL(15,2) DEFAULT NULL AFTER monto_invertido"); print_line("    • historial_tokens: profit_dolares column added", 'success'); } catch (PDOException $e) { print_line("    • historial_tokens: profit_dolares column OK", 'dim'); }
+try { $pdo->exec("ALTER TABLE tokens_banned ADD COLUMN nombre VARCHAR(100) DEFAULT NULL AFTER razon"); print_line("    • tokens_banned: nombre column added", 'success'); } catch (PDOException $e) { print_line("    • tokens_banned: nombre column OK", 'dim'); }
+
+// wallet_daily_snapshot
+try { $pdo->exec("CREATE TABLE IF NOT EXISTS wallet_daily_snapshot (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    saldo DECIMAL(15,2) NOT NULL,
+    snapshot_date DATE NOT NULL UNIQUE,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"); print_line("    • wallet_daily_snapshot", 'success'); } catch (PDOException $e) { print_line("    • wallet_daily_snapshot: " . $e->getMessage(), 'error'); }
+
 step_end();
 
 step(3, "Ensuring default data...");
@@ -305,13 +342,16 @@ echo "  └───────────────────────
 
 print_line("  NEXT STEPS", 'warning');
 echo "  ┌────────────────────────────────────────────────────────────────┐\n";
-echo "  │  1. Start the server:                                          │\n";
-echo "  │       php servidor/servidor.php                                │\n";
+echo "  │  1. Start the servers:                                          │\n";
+echo "  │       servidor/iniciar.bat                                       │\n";
 echo "  │                                                                  │\n";
 echo "  │  2. Open the dashboard:                                        │\n";
 echo "  │       http://your-server/app2/                                  │\n";
 echo "  │                                                                  │\n";
-echo "  │  3. Default configuration:                                     │\n";
+echo "  │  3. Stop the servers:                                          │\n";
+echo "  │       servidor/stop.bat                                        │\n";
+echo "  │                                                                  │\n";
+echo "  │  4. Default configuration:                                     │\n";
 echo "  │       • TP: +24%    • SL: -6% from peak (or -3% if peak <12%)  │\n";
 echo "  └────────────────────────────────────────────────────────────────┘\n\n";
 

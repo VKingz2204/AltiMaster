@@ -27,7 +27,7 @@ $stmt->execute();
 $userFound = false;
 $allUsers = $stmt->fetchAll();
 foreach ($allUsers as $u) {
-    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altchecks_secret');
+    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altiChecker_secret');
     if ($token === $expectedToken) {
         $userFound = true;
         $nivel = $u['nivel'];
@@ -49,95 +49,42 @@ if ($method === 'GET') {
 
     switch ($action) {
         case 'get':
-            $stmtUser = $pdo->prepare("SELECT nivel_detalle FROM usuarios WHERE username = ?");
-            $stmtUser->execute([$username]);
-            $userData = $stmtUser->fetch();
-            $nivelDetalle = $userData['nivel_detalle'] ?? 1;
+            $stmt = $pdo->query("SELECT * FROM tokens WHERE estado = 'monitoreando' ORDER BY creado_en DESC LIMIT 100");
+            $tokens = $stmt->fetchAll();
             
-            if ($nivel === 'admin') {
-                $stmt = $pdo->query("SELECT * FROM tokens WHERE estado = 'monitoreando' ORDER BY creado_en DESC LIMIT 100");
-                $tokens = $stmt->fetchAll();
-                
-                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 500");
-                $historial = $historialStmt->fetchAll();
-                
-                echo json_encode([
-                    'success' => true,
-                    'tokens' => $tokens,
-                    'historial' => $historial,
-                    'user' => [
-                        'username' => $username,
-                        'nivel' => $nivel,
-                        'nivel_detalle' => $nivelDetalle
-                    ],
-                    'server' => [
-                        'activo' => isServerActive()
-                    ]
-                ]);
-            } elseif ($nivel === 'vip') {
-                $totalStmt = $pdo->query("SELECT COUNT(*) as total FROM tokens WHERE estado = 'monitoreando'");
-                $total = $totalStmt->fetch()['total'];
-                
-                if ($nivelDetalle == 1) {
-                    $limite = max(5, ceil($total * 0.20));
-                } elseif ($nivelDetalle == 2) {
-                    $limite = ceil($total * 0.50);
-                } else {
-                    $limite = 100;
-                }
-                
-                $stmt = $pdo->prepare("SELECT * FROM tokens WHERE estado = 'monitoreando' ORDER BY RAND() LIMIT ?");
-                $stmt->bindValue(1, $limite, PDO::PARAM_INT);
-                $stmt->execute();
-                $tokens = $stmt->fetchAll();
-                
-                $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 500");
-                $historial = $historialStmt->fetchAll();
-                
-                echo json_encode([
-                    'success' => true,
-                    'tokens' => $tokens,
-                    'historial' => $historial,
-                    'user' => [
-                        'username' => $username,
-                        'nivel' => $nivel,
-                        'nivel_detalle' => $nivelDetalle
-                    ],
-                    'server' => [
-                        'activo' => isServerActive()
-                    ]
-                ]);
-            } elseif ($nivel === 'free') {
-                $stmt = $pdo->query("
-                    SELECT t.*, tf.mostrar_desde, tf.mostrar_hasta, tf.activo as free_activo
-                    FROM tokens t
-                    INNER JOIN tokens_free tf ON t.id = tf.id_token
-                    WHERE tf.activo = 1
-                    ORDER BY tf.mostrar_desde DESC
-                    LIMIT 1
-                ");
-                $tokenFree = $stmt->fetch();
-
-                if ($tokenFree) {
-                    $tiempoRestante = strtotime($tokenFree['mostrar_hasta']) - time();
-                    if ($tiempoRestante < 0) $tiempoRestante = 0;
-                }
-
-                echo json_encode([
-                    'success' => true,
-                    'token' => $tokenFree,
-                    'tiempo_restante' => $tiempoRestante ?? 0,
-                    'server' => [
-                        'activo' => isServerActive()
-                    ],
-                    'user' => [
-                        'username' => $username,
-                        'nivel' => $nivel,
-                        'nivel_detalle' => $nivelDetalle
-                    ],
-                    'mensaje' => 'Actualiza a VIP para ver todos los tokens'
-                ]);
+            $historialStmt = $pdo->query("SELECT * FROM historial_tokens ORDER BY fecha_salida DESC LIMIT 500");
+            $historial = $historialStmt->fetchAll();
+            
+            $walletStmt = $pdo->query("SELECT saldo, ultima_actualizacion FROM wallet WHERE id = 1");
+            $walletData = $walletStmt->fetch();
+            $walletSaldo = $walletData ? (float)$walletData['saldo'] : 1000.00;
+            
+            $profit30d = $pdo->query("SELECT COALESCE(SUM(monto), 0) as total FROM wallet_transactions WHERE tipo = 'profit' AND creado_en >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $profit30 = (float)$profit30d->fetch()['total'];
+            
+            $tagsStmt = $pdo->query("SELECT * FROM coins_tags");
+            $coinsTagsMap = [];
+            foreach ($tagsStmt->fetchAll() as $ct) {
+                $coinsTagsMap[$ct['nombre_normalizado']] = $ct;
             }
+            
+            echo json_encode([
+                'success' => true,
+                'tokens' => $tokens,
+                'historial' => $historial,
+                'wallet' => [
+                    'saldo' => $walletSaldo,
+                    'profit_30d' => $profit30
+                ],
+                'coins_tags' => $coinsTagsMap,
+                'user' => [
+                    'username' => $username,
+                    'nivel' => $nivel
+                ],
+                'server' => [
+                    'activo' => isServerActive()
+                ]
+            ]);
             break;
 
         case 'historial':
@@ -180,21 +127,94 @@ if ($method === 'GET') {
             break;
 
         case 'earnings_by_day':
-            $stmt = $pdo->query("
+            $month = $_GET['month'] ?? date('Y-m');
+            $stmt = $pdo->prepare("
                 SELECT
-                    DATE(fecha_entrada) as entry_date,
-                    SUM(profit_porcentaje) as total_earnings,
+                    DATE(h.fecha_entrada) as entry_date,
+                    SUM(h.profit_porcentaje) as total_earnings_pct,
+                    SUM(h.profit_dolares) as total_profit_dollars,
                     COUNT(*) as total_trades
-                FROM historial_tokens
-                WHERE fecha_entrada IS NOT NULL
-                    AND fecha_entrada >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                GROUP BY DATE(fecha_entrada)
+                FROM historial_tokens h
+                WHERE h.fecha_entrada IS NOT NULL
+                    AND MONTH(h.fecha_entrada) = MONTH(?)
+                    AND YEAR(h.fecha_entrada) = YEAR(?)
+                GROUP BY DATE(h.fecha_entrada)
                 ORDER BY entry_date DESC
             ");
+            $stmt->execute([$month . '-01', $month . '-01']);
+            $earnings = $stmt->fetchAll();
+
+            // Ensure today's snapshot exists
+            $today = date('Y-m-d');
+            $snapStmt = $pdo->prepare("SELECT 1 FROM wallet_daily_snapshot WHERE snapshot_date = ?");
+            $snapStmt->execute([$today]);
+            if (!$snapStmt->fetch()) {
+                $walletStmt = $pdo->query("SELECT saldo FROM wallet WHERE id = 1");
+                $saldo = $walletStmt->fetch()['saldo'] ?? 1000.00;
+                $pdo->prepare("INSERT INTO wallet_daily_snapshot (saldo, snapshot_date) VALUES (?, ?)")
+                    ->execute([$saldo, $today]);
+            }
+
+            // Calculate starting balance for each day
+            $getStartingBalance = function($date) use ($pdo) {
+                $snapStmt = $pdo->prepare("SELECT saldo FROM wallet_daily_snapshot WHERE snapshot_date = ?");
+                $snapStmt->execute([$date]);
+                $snap = $snapStmt->fetch();
+                if ($snap) return (float)$snap['saldo'];
+
+                $txStmt = $pdo->prepare("SELECT saldo_resultante FROM wallet_transactions WHERE DATE(creado_en) < ? ORDER BY creado_en DESC LIMIT 1");
+                $txStmt->execute([$date]);
+                $tx = $txStmt->fetch();
+                if ($tx) return (float)$tx['saldo_resultante'];
+
+                return 1000.00;
+            };
+
+            foreach ($earnings as &$e) {
+                $e['starting_balance'] = $getStartingBalance($e['entry_date']);
+                $e['total_earnings_pct'] = (float)($e['total_earnings_pct'] ?? 0);
+                $e['total_profit_dollars'] = (float)($e['total_profit_dollars'] ?? 0);
+                $e['total_trades'] = (int)($e['total_trades'] ?? 0);
+            }
+            unset($e);
+
             echo json_encode([
                 'success' => true,
-                'earnings' => $stmt->fetchAll(),
-                'today' => date('Y-m-d')
+                'earnings' => $earnings,
+                'month' => $month,
+                'today' => $today
+            ]);
+            break;
+
+        case 'earnings_detail':
+            $date = $_GET['date'] ?? '';
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                echo json_encode(['success' => false, 'error' => 'Formato de fecha inválido. Use YYYY-MM-DD']);
+                break;
+            }
+            $stmt = $pdo->prepare("
+                SELECT id, chain_id, token_address, nombre, simbolo,
+                       precio_entrada, precio_salida, profit_porcentaje,
+                       profit_dolares, duracion_minutos, razon_salida, tag
+                FROM historial_tokens
+                WHERE DATE(fecha_entrada) = ?
+                ORDER BY fecha_entrada DESC
+            ");
+            $stmt->execute([$date]);
+            $trades = $stmt->fetchAll();
+            $totalProfit = 0;
+            $totalDollars = 0;
+            foreach ($trades as &$t) {
+                $totalProfit += (float)($t['profit_porcentaje'] ?? 0);
+                $totalDollars += (float)($t['profit_dolares'] ?? 0);
+            }
+            unset($t);
+            echo json_encode([
+                'success' => true,
+                'date' => $date,
+                'trades' => $trades,
+                'total_profit_pct' => round($totalProfit, 2),
+                'total_profit_dollars' => round($totalDollars, 2)
             ]);
             break;
 
@@ -221,6 +241,27 @@ if ($method === 'GET') {
                 'success' => true,
                 'detail' => $historial,
                 'token_extra' => $tokenExtra
+            ]);
+            break;
+
+        case 'wallet':
+            $stmt = $pdo->query("SELECT saldo, ultima_actualizacion FROM wallet WHERE id = 1");
+            $walletData = $stmt->fetch();
+            $saldo = $walletData ? (float)$walletData['saldo'] : 1000.00;
+            
+            $profit30d = $pdo->query("SELECT COALESCE(SUM(monto), 0) as total FROM wallet_transactions WHERE tipo = 'profit' AND creado_en >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $profit30 = (float)$profit30d->fetch()['total'];
+            
+            $txStmt = $pdo->query("SELECT * FROM wallet_transactions ORDER BY creado_en DESC LIMIT 50");
+            $transactions = $txStmt->fetchAll();
+            
+            echo json_encode([
+                'success' => true,
+                'wallet' => [
+                    'saldo' => $saldo,
+                    'profit_30d' => $profit30
+                ],
+                'transactions' => $transactions
             ]);
             break;
 
@@ -256,12 +297,24 @@ if ($method === 'GET') {
             }
 
             $links = [];
+            $twitterHandle = null;
             if ($profile && isset($profile['links'])) {
                 $links = $profile['links'];
+                foreach ($links as $l) {
+                    if (($l['type'] ?? '') === 'twitter' && !empty($l['url'])) {
+                        $parts = explode('/', rtrim($l['url'], '/'));
+                        $twitterHandle = end($parts);
+                        break;
+                    }
+                }
             } elseif ($pair && isset($pair['info'])) {
                 if (isset($pair['info']['socials'])) {
                     foreach ($pair['info']['socials'] as $s) {
                         $links[] = ['type' => $s['type'] ?? '', 'url' => $s['url'] ?? ''];
+                        if (($s['type'] ?? '') === 'twitter' && !empty($s['url'])) {
+                            $parts = explode('/', rtrim($s['url'], '/'));
+                            $twitterHandle = end($parts);
+                        }
                     }
                 }
                 if (isset($pair['info']['websites'])) {
@@ -271,11 +324,30 @@ if ($method === 'GET') {
                 }
             }
 
+            $twitterCreatedAt = null;
+            if ($twitterHandle) {
+                $bearerToken = 'AAAAAAAAAAAAAAAAAAAAALeg9wEAAAAATUzuO0f2yUcKI%2BCo6LHam%2B%2BpZng%3DixkH7p1JH3knOV5mkkQFILMpS32ZCO2AQFQdDJ6msKMgo3G5Bu';
+                $url = "https://api.x.com/2/users/by/username/" . urlencode($twitterHandle) . "?user.fields=created_at";
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => $url, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5,
+                    CURLOPT_HTTPHEADER => ["Authorization: Bearer $bearerToken"], CURLOPT_SSL_VERIFYPEER => false
+                ]);
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                if ($httpCode === 200) {
+                    $data = json_decode($response, true);
+                    $twitterCreatedAt = $data['data']['created_at'] ?? null;
+                }
+            }
+
             echo json_encode([
                 'success' => true,
                 'profile' => $profile,
                 'pair' => $pair,
-                'links' => $links
+                'links' => $links,
+                'twitter_created_at' => $twitterCreatedAt
             ]);
             break;
 

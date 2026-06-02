@@ -1,6 +1,6 @@
 @echo off
 echo ============================================
-echo AltChecks Server - Detener Servidor
+echo AltiChecker Server - Detener Servidor
 echo ============================================
 echo.
 

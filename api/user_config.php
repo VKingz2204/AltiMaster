@@ -21,11 +21,11 @@ if (!$token) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, username, nivel, plan, is_admin FROM usuarios WHERE activo = 1");
+$stmt = $pdo->prepare("SELECT id, username, nivel FROM usuarios WHERE activo = 1");
 $stmt->execute();
 $userFound = null;
 foreach ($stmt->fetchAll() as $u) {
-    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altchecks_secret');
+    $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altiChecker_secret');
     if ($token === $expectedToken) {
         $userFound = $u;
         break;
@@ -68,14 +68,6 @@ if ($method === 'GET' && $action === 'get_api_key') {
 }
 
 if ($method === 'POST' && $action === 'regenerate_key') {
-    $plan = $userFound['plan'] ?? 'basic';
-    $isAdmin = (bool)($userFound['is_admin'] ?? false);
-
-    if ($plan === 'basic' && !$isAdmin) {
-        http_response_code(403);
-        echo json_encode(['error' => 'Los usuarios Basic no pueden regenerar su API key']);
-        exit;
-    }
 
     $stmtKey = $pdo->prepare("SELECT `key`, last_regenerated_at FROM api_keys WHERE user_id = ?");
     $stmtKey->execute([$userFound['id']]);
@@ -132,16 +124,7 @@ if ($method === 'GET' && $action === 'criteria') {
         $criteria = $stmt->fetch();
     }
 
-    $plan = $userFound['plan'] ?? 'basic';
-    $isAdmin = (bool)($userFound['is_admin'] ?? false);
-
-    if ($plan === 'ultra' || $isAdmin) {
-        $editable = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes', 'save_profit_pct'];
-    } elseif ($plan === 'pro') {
-        $editable = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes'];
-    } else {
-        $editable = [];
-    }
+    $editable = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes', 'save_profit_pct'];
 
     echo json_encode([
         'success' => true,
@@ -164,16 +147,7 @@ if ($method === 'PATCH' && $action === 'criteria') {
         exit;
     }
 
-    $plan = $userFound['plan'] ?? 'basic';
-    $isAdmin = (bool)($userFound['is_admin'] ?? false);
-
-    if ($plan === 'ultra' || $isAdmin) {
-        $allowed = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes', 'save_profit_pct'];
-    } elseif ($plan === 'pro') {
-        $allowed = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes'];
-    } else {
-        $allowed = [];
-    }
+    $allowed = ['stop_loss_pct', 'take_profit_pct', 'max_wait_minutes', 'save_profit_pct'];
 
     $updates = [];
     $params = [];

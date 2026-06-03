@@ -3003,7 +3003,11 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <td data-label="Chain">${t.chain_id}</td>
                         <td data-label="Reason">${t.razon || 'N/A'}</td>
                         <td data-label="Date">${t.banneado_en}</td>
-                        <td data-label="Actions"><button class="btn-delete" onclick="deleteBannedToken(${t.id})" style="padding:5px 12px;font-size:11px;">Unban</button></td>
+                        <td data-label="Actions">
+                            <button class="btn-copy" onclick="navigator.clipboard.writeText('${t.pair_address}')" style="padding:4px 8px;font-size:11px;margin-right:4px;" title="Copy Pair Address">Copy</button>
+                            <button class="btn-dex" onclick="window.open('https://dexscreener.com/solana/${t.pair_address}','_blank')" style="padding:4px 8px;font-size:11px;margin-right:4px;" title="Open in DexScreener">DexSc</button>
+                            <button class="btn-delete" onclick="deleteBannedToken(${t.id})" style="padding:5px 12px;font-size:11px;">Unban</button>
+                        </td>
                     </tr>
                 `).join('');
             });

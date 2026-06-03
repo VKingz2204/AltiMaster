@@ -480,6 +480,21 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
             echo "[" . date('Y-m-d H:i:s') . "] COOLDOWN ERROR: " . $e->getMessage() . "\n";
         }
     }
+
+    if ($razon === 'tp' || $razon === 'save_tp') {
+        try {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM historial_tokens WHERE pair_address = ? AND DATE(fecha_salida) = CURDATE() AND razon_salida IN ('tp', 'save_tp')");
+            $stmt->execute([$token['pair_address']]);
+            $dailyCount = (int)$stmt->fetchColumn();
+            if ($dailyCount >= 3) {
+                $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares) VALUES (?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 0) ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(CURDATE(), INTERVAL 1 DAY), profit_dolares = 0")
+                    ->execute([$token['pair_address']]);
+                echo "[" . date('Y-m-d H:i:s') . "] DAILY LIMIT: " . $token['nombre'] . " hit 3 TP/Save TP today, blocked until tomorrow\n";
+            }
+        } catch (Exception $e) {
+            echo "[" . date('Y-m-d H:i:s') . "] DAILY LIMIT ERROR: " . $e->getMessage() . "\n";
+        }
+    }
 }
 
 function actualizarTokenFree($pdo, $nuevoTokenId) {

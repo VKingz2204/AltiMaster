@@ -18,9 +18,7 @@ Real-time token monitoring and trading signal system for memecoins and altcoins 
 
 ## Community
 
-Join our Discord server for support and updates.
-
-[**Join the Discord**](https://discord.gg/VWFkEv43)
+[**Join our Discord server for support and updates. (WIP)**](https://discord.gg/VWFkEv43)
 
 ---
 

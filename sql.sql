@@ -54,7 +54,6 @@ CREATE TABLE tokens (
     precio_actual DECIMAL(30, 18) DEFAULT 0,
     precio_entrada DECIMAL(30, 18) DEFAULT 0,
     precio_descubrimiento DECIMAL(30, 18) DEFAULT 0,
-    precio_crash DECIMAL(30, 18) DEFAULT NULL,
     precio_maximo DECIMAL(30, 18) DEFAULT 0,
     precio_15_peak DECIMAL(30, 18) DEFAULT 0,
     last_check_price DECIMAL(20, 18) DEFAULT 0,
@@ -68,8 +67,7 @@ CREATE TABLE tokens (
     tp_alcanzado BOOLEAN DEFAULT FALSE,
     sl_alcanzado BOOLEAN DEFAULT FALSE,
     passed_15 BOOLEAN DEFAULT FALSE,
-    es_reentry BOOLEAN DEFAULT FALSE,
-    reentry_count INT DEFAULT 0,
+    lenta BOOLEAN DEFAULT FALSE,
     checks_count INT DEFAULT 0,
     laps INT DEFAULT 0,
     timeout_count INT DEFAULT 0,
@@ -130,7 +128,7 @@ CREATE TABLE historial_tokens (
     precio_salida DECIMAL(30, 18),
     profit_porcentaje DECIMAL(10, 2),
     duracion_minutos INT,
-    razon_salida ENUM('tp', 'sl', 'save_tp', 'caida_pico', 'timeout', 'ban', 'expirado', 'manual') DEFAULT 'expirado',
+    razon_salida ENUM('tp', 'sl', 'save_tp', 'caida_pico', 'timeout', 'ban', 'expirado', 'manual', 'inestable') DEFAULT 'expirado',
     tag VARCHAR(20) DEFAULT NULL,
     es_reentry BOOLEAN DEFAULT FALSE,
     fecha_entrada DATETIME,
@@ -139,6 +137,26 @@ CREATE TABLE historial_tokens (
     profit_dolares DECIMAL(15,2) DEFAULT NULL,
     INDEX idx_fecha (fecha_salida)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+-- Tabla: traded_addresses
+-- Registro de tokens ya operados (excepto TP, que pueden re-entrar)
+-- --------------------------------------------------------
+CREATE TABLE traded_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pair_address VARCHAR(100) NOT NULL UNIQUE,
+    token_address VARCHAR(100) NOT NULL,
+    chain_id VARCHAR(20) NOT NULL,
+    nombre VARCHAR(100),
+    razon_salida VARCHAR(20) NOT NULL,
+    registrado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_pair (pair_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ALTER TABLE tokens DROP COLUMN precio_crash;
+-- ALTER TABLE tokens DROP COLUMN es_reentry;
+-- ALTER TABLE tokens DROP COLUMN reentry_count;
+-- ALTER TABLE historial_tokens DROP COLUMN es_reentry;
 
 -- --------------------------------------------------------
 -- Tabla: coins_tags
@@ -372,4 +390,8 @@ CREATE TABLE IF NOT EXISTS token_cooldowns (
     INDEX idx_cooldown (cooldown_until),
     INDEX idx_pair (pair_address)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration for existing databases (run once):
+-- ALTER TABLE tokens ADD COLUMN lenta BOOLEAN DEFAULT FALSE AFTER passed_15;
+-- ALTER TABLE tokens DROP COLUMN precio_crash, DROP COLUMN es_reentry, DROP COLUMN reentry_count;
 

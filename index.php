@@ -17,6 +17,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <style>
         :root {
             --bg-primary: #070712;
@@ -761,6 +762,65 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             font-size: 12px;
         }
 
+        .detail-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+        }
+        .detail-summary-grid .detail-label {
+            font-size: 11px;
+        }
+        .detail-summary-grid .detail-value {
+            font-size: 14px;
+        }
+
+        .detail-prices-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            text-align: center;
+        }
+        .detail-prices-grid .price-cell {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 6px 4px;
+        }
+        .detail-prices-grid .price-label {
+            font-size: 10px;
+            color: var(--accent-primary);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .detail-prices-grid .price-time {
+            font-size: 9px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        .detail-prices-grid .price-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .detail-chart-container {
+            margin-top: 6px;
+            padding: 8px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            height: 200px;
+            position: relative;
+        }
+
+        .detail-export-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
         /* Token Card */
         .token-address {
             display: flex;
@@ -1215,6 +1275,27 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             transform: scale(0.97);
         }
 
+        .btn-dex {
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .btn-dex:hover {
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
+            transform: scale(1.05);
+        }
+        .btn-dex:active {
+            transform: scale(0.95);
+        }
+
         .admin-section {
             margin-bottom: 32px;
         }
@@ -1343,6 +1424,17 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         .toast-sl { background: rgba(255,0,84,0.15); border-color: rgba(255,0,84,0.3); color: var(--error); }
         .toast-info { background: rgba(0,212,255,0.15); border-color: rgba(0,212,255,0.3); color: var(--accent-primary); }
         .toast .toast-sub { font-size: 12px; opacity: 0.7; font-weight: 400; margin-top: 2px; }
+
+        .pump-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; background: rgba(255,0,110,0.2); color: #ff006e; border: 1px solid rgba(255,0,110,0.4); animation: pumpPulse 1.5s ease-in-out infinite; margin-left: 6px; vertical-align: middle; }
+        .pump-dump-badge { background: rgba(255,0,84,0.2); color: #ff0054; border-color: rgba(255,0,84,0.4); }
+        .token-volatility { font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+        .vol-low { color: var(--success); }
+        .vol-medium { color: var(--warning); }
+        .vol-high { color: var(--error); }
+        .stat-card.pump-count { border-color: rgba(255,0,110,0.3); }
+        .stat-card.pump-count .value { color: #ff006e; }
+        @keyframes pumpPulse { 0%, 100% { box-shadow: 0 0 5px rgba(255,0,110,0.3); } 50% { box-shadow: 0 0 20px rgba(255,0,110,0.6), 0 0 40px rgba(255,0,110,0.2); } }
+        .token-card.pump-active { animation: pumpPulse 1s ease-in-out infinite; border-color: rgba(255,0,110,0.5) !important; }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -1635,7 +1727,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 <div id="overviewContent">
                     <div class="loading">
                         <div class="loading-spinner"></div>
-                        <p>Cargando...</p>
+                        <p>Loading...</p>
                     </div>
                 </div>
             </section>
@@ -1715,7 +1807,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <div class="key-actions">
                             <button class="btn-edit" onclick="revealApiKey()" id="btnRevealKey">Reveal</button>
                             <button class="btn-copy" onclick="copyApiKey()" id="btnCopyKey">Copy</button>
-                            <button class="btn-edit" onclick="regenerateApiKey()" id="btnRegenKey">Rehacer</button>
+                            <button class="btn-edit" onclick="regenerateApiKey()" id="btnRegenKey">Regenerate</button>
                             <span id="regenCountdown" style="font-size:12px;display:flex;align-items:center;"></span>
                         </div>
                     </div>
@@ -1739,6 +1831,31 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <button class="btn-add" onclick="addManualCoin()" id="btnAddManualCoin">Add Coin</button>
                         </div>
                         <div id="manualCoinStatus" class="status-text" style="margin-top:8px;"></div>
+                    </div>
+
+                    <div class="admin-section" id="walletSection" style="margin-bottom:24px;">
+                        <div style="background:var(--glass-bg);backdrop-filter:blur(16px) saturate(1.2);border:1px solid var(--glass-border);border-radius:16px;padding:24px;box-shadow:var(--glass-shadow);transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);" onmouseover="this.style.borderColor='rgba(0,212,255,0.35)'" onmouseout="this.style.borderColor=''">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+                                <i data-lucide="wallet" class="icon-sm" style="stroke:var(--accent-primary);"></i>
+                                <span style="font-weight:600;font-size:14px;">Wallet Management</span>
+                            </div>
+
+                            <div style="text-align:center;padding:20px 0;margin-bottom:20px;border-bottom:1px solid var(--glass-border);">
+                                <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">Current Balance</div>
+                                <div id="walletBalanceConfig" style="font-size:36px;font-weight:700;color:var(--success);">$1,000.00</div>
+                            </div>
+
+                            <div style="margin-top:16px;">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Adjust Balance</div>
+                                <div class="flex-row" style="gap:8px;">
+                                    <input type="number" id="walletAdjustAmount" placeholder="Amount ($)" min="0.01" step="0.01" style="flex:1;min-width:120px;padding:10px 14px;background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:8px;color:var(--text-primary);font-size:14px;">
+                                    <button class="btn-add" onclick="adjustWallet('add')" style="padding:10px 20px;border-radius:8px;">+ Add</button>
+                                    <button class="btn-delete" onclick="adjustWallet('remove')" style="padding:10px 20px;border-radius:8px;">- Remove</button>
+                                </div>
+                            </div>
+
+                            <div id="walletAdjustStatus" class="status-text" style="margin-top:12px;text-align:center;"></div>
+                        </div>
                     </div>
 
                     <div class="admin-users">
@@ -1884,9 +2001,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 console.error('Login error:', err);
                 let msg = 'Connection error: ';
                 if (err.name === 'SyntaxError') {
-                    msg += 'El servidor devolvió un error HTML en vez de JSON. Revisa la consola (Network tab).';
+                    msg += 'Server returned an HTML error instead of JSON. Check the console (Network tab).';
                 } else if (err.message && err.message.includes('Failed to fetch')) {
-                    msg += 'No se puede conectar al servidor. ¿Apache está corriendo?';
+                    msg += 'Cannot connect to server. Is Apache running?';
                 } else {
                     msg += err.message || 'Unknown error';
                 }
@@ -2052,15 +2169,19 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         </div>
                         <div class="stat-card">
                             <div class="value profit-positive" style="color:var(--success);">$${formatNumber(wallet.saldo)}</div>
-                            <div class="label">Saldo Actual</div>
+                            <div class="label">Current Balance</div>
                         </div>
                         <div class="stat-card">
                             <div class="value ${walletClass}">${walletLabel}$${wallet.profit_30d.toFixed(2)}</div>
-                            <div class="label">Profit 30 días</div>
+                            <div class="label">Profit 30d</div>
                         </div>
                         <div class="stat-card">
                             <div class="value">${tradesHoy || 0}</div>
-                            <div class="label">Trades Hoy</div>
+                            <div class="label">Today's Trades</div>
+                        </div>
+                        <div class="stat-card pump-count">
+                            <div class="value">${data.active_pumps || 0}</div>
+                            <div class="label">Pumps (1h)</div>
                         </div>
                     </div>
                 `;
@@ -2081,7 +2202,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 if (data.tokens && data.tokens.length > 0) {
                     grid.innerHTML = data.tokens.map((t, idx) => renderTokenCard(t, idx, coinsTagsMap)).join('');
                 } else {
-                    grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:40px;">No hay tokens activos</p>';
+                    grid.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:40px;">No active tokens</p>';
                 }
                 console.log('AltiChecker: Token grid rendered');
 
@@ -2127,9 +2248,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             let hTagHtml = '';
                             if (hTagData) {
                                 const hParts = [];
-                                if (parseInt(hTagData.strong_count) > 0) hParts.push(`${hTagData.strong_count}xS`);
-                                if (parseInt(hTagData.okay_count) > 0) hParts.push(`${hTagData.okay_count}xOk`);
-                                if (parseInt(hTagData.checking_count) > 0) hParts.push(`${hTagData.checking_count}xCh`);
+                                if (parseInt(hTagData.checking_count) > 0) hParts.push(`${hTagData.checking_count}xC`);
                                 if (parseInt(hTagData.inestable_count) > 0) hParts.push(`${hTagData.inestable_count}xI`);
                                 if (hParts.length > 0) hTagHtml = `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:1px;">${hParts.join(', ')}</div>`;
                             }
@@ -2147,7 +2266,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                                 <td data-label="Reason">${getRazonSalida(h.razon_salida)}</td>
                                 <td data-label="Address" style="font-size:0.75rem;">
                                     <span title="${h.token_address}">${h.token_address ? h.token_address.substring(0, 6) + '...' + h.token_address.substring(h.token_address.length - 4) : '-'}</span>
-                                    ${h.token_address ? `<button class="btn-copy" onclick="copyToClipboard('${h.token_address}', this)">Copiar</button>` : ''}
+                                    ${h.token_address ? `<div style="margin-top:4px;display:flex;gap:4px;"><button class="btn-copy" onclick="copyToClipboard('${h.token_address}', this)">Copy</button>${h.pair_address ? `<button class="btn-dex" onclick="window.open('https://dexscreener.com/solana/${h.pair_address}','_blank')">DexSc</button>` : ''}</div>` : ''}
                                 </td>
                                 ${currentUser.nivel === 'admin' ? `<td data-label="Actions"><button onclick="showTokenDetail(${h.id})" class="btn-edit" style="margin-right:4px;">Details</button><button onclick="banHistorial(${h.id})" class="btn-delete">Ban</button></td>` : ''}
                             </tr>`;
@@ -2417,10 +2536,9 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             let tagHtml = '';
             let countHtml = '';
             if (tagData) {
-                const totalCount = (parseInt(tagData.strong_count) || 0) + (parseInt(tagData.checking_count) || 0) + (parseInt(tagData.okay_count) || 0) + (parseInt(tagData.inestable_count) || 0);
+                const totalCount = (parseInt(tagData.checking_count) || 0) + (parseInt(tagData.okay_count) || 0) + (parseInt(tagData.inestable_count) || 0);
                 countHtml = ` (x${totalCount})`;
                 const parts = [];
-                if (parseInt(tagData.strong_count) > 0) parts.push(`<span style="color:var(--success);font-size:0.65rem;">${tagData.strong_count}xS</span>`);
                 if (parseInt(tagData.okay_count) > 0) parts.push(`<span style="color:var(--accent-primary);font-size:0.65rem;">${tagData.okay_count}xOk</span>`);
                 if (parseInt(tagData.checking_count) > 0) parts.push(`<span style="color:var(--warning);font-size:0.65rem;">${tagData.checking_count}xCh</span>`);
                 if (parseInt(tagData.inestable_count) > 0) parts.push(`<span style="color:var(--error);font-size:0.65rem;">${tagData.inestable_count}xI</span>`);
@@ -2429,13 +2547,21 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 countHtml = ' <span style="color:var(--success);font-size:0.65rem;font-weight:700;">NEW</span>';
             }
 
+            const vol = t.volatility_1h;
+            const volHtml = vol !== null && vol !== undefined ?
+                `<div class="token-volatility ${vol > 5 ? 'vol-high' : vol > 2 ? 'vol-medium' : 'vol-low'}">Vol: ${vol.toFixed(2)}%</div>` : '';
+            const pumpBadgeClass = t.is_pump && t.pump_change ? (t.pump_change > 5 && t.pump_change < 10 ? 'pump-dump-badge' : '') : '';
+            const pumpHtml = t.is_pump ?
+                `<span class="pump-badge ${pumpBadgeClass}">PUMP ${t.pump_change > 0 ? '+' : ''}${t.pump_change}%</span>` : '';
+            const pumpCardClass = t.is_pump ? ' pump-active' : '';
+
             return `
-                <div class="token-card" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;animation-delay:${delay}s">
+                <div class="token-card${pumpCardClass}" onclick="showTokenInfo('${t.chain_id}', '${t.token_address}', ${t.id})" style="cursor:pointer;animation-delay:${delay}s">
                     <div class="token-card-header">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div class="token-icon" id="token-icon-${t.id}">${(t.nombre || '?')[0]}</div>
                             <div>
-                                <div class="token-name">${t.nombre || 'Token'}${countHtml}</div>
+                                <div class="token-name">${t.nombre || 'Token'}${countHtml} ${pumpHtml}</div>
                                 ${tagHtml}
                                 <div class="token-symbol">${t.simbolo || ''}</div>
                             </div>
@@ -2443,12 +2569,13 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <span class="chain-badge ${getChainClass(t.chain_id)}">${t.chain_id}</span>
                     </div>
                     <div class="token-price">$${formatPrice(t.precio_actual)} <span class="profit-badge ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
+                    ${volHtml}
                     ${t.monto_invertido ? `<div style="font-size:0.7rem;color:var(--text-muted);margin:4px 0;">Entry: $${parseFloat(t.monto_invertido).toFixed(2)} → $${(parseFloat(t.monto_invertido) * (1 + profit/100)).toFixed(2)}</div>` : ''}
                     ${currentUser.nivel === 'admin' ? `
                         <button class="btn-delete" onclick="event.stopPropagation();forceExitToken(${t.id},'${(t.nombre || t.simbolo || 'Token').replace(/'/g, "\\'")}')" 
                                 style="margin-top:6px;font-size:11px;padding:4px 10px;width:100%;">Exit</button>
                     ` : ''}
-                    <div class="token-status status-${t.estado}" style="margin-top:6px;font-size:11px;text-align:center;">${t.estado === 'monitoreando' ? 'Monitoreando' : 'Nuevo'}</div>
+                    <div class="token-status status-${t.estado}" style="margin-top:6px;font-size:11px;text-align:center;">${t.estado === 'monitoreando' ? 'Monitoring' : 'New'} ${t.lenta ? '<span style="color:var(--text-muted);font-style:italic;">Slow</span>' : ''}</div>
                 </div>
             `;
         }
@@ -2692,7 +2819,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     const m = data.retry_after_minutes || 0;
                     document.getElementById('regenCountdown').textContent = `Available in ${h}h ${m}m`;
                     btn.disabled = false;
-                    btn.textContent = 'Rehacer';
+                    btn.textContent = 'Regenerate';
                     setTimeout(() => document.getElementById('regenCountdown').textContent = '', 8000);
                 } else if (data.success) {
                     _fullApiKey = data.api_key;
@@ -2700,17 +2827,17 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     document.getElementById('btnRevealKey').textContent = 'Reveal';
                     document.getElementById('regenCountdown').textContent = 'Key regenerated!';
                     btn.disabled = false;
-                    btn.textContent = 'Rehacer';
+                    btn.textContent = 'Regenerate';
                     setTimeout(() => document.getElementById('regenCountdown').textContent = '', 4000);
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Unknown error' });
                     btn.disabled = false;
-                    btn.textContent = 'Rehacer';
+                    btn.textContent = 'Regenerate';
                 }
             })
             .catch(() => {
                 btn.disabled = false;
-                btn.textContent = 'Rehacer';
+                btn.textContent = 'Regenerate';
             });
         }
 
@@ -2765,7 +2892,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             .then(d => {
                 document.getElementById('manualCoinAddress').value = '';
                 if (d.success) {
-                    status.textContent = '✓ Coin added. The server will process it shortly.';
+                    status.textContent = '✓ Coin added and processing now...';
                     status.style.color = 'var(--success)';
                 } else {
                     status.textContent = '✗ ' + (d.error || 'Error');
@@ -2779,6 +2906,42 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 5000);
             })
             .finally(() => { btn.disabled = false; btn.textContent = 'Add Coin'; });
+        }
+
+        function adjustWallet(tipo) {
+            const amount = parseFloat(document.getElementById('walletAdjustAmount').value);
+            const status = document.getElementById('walletAdjustStatus');
+            if (!amount || amount <= 0) {
+                status.textContent = 'Enter a valid amount';
+                status.style.color = 'var(--error)';
+                setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 3000);
+                return;
+            }
+            status.textContent = (tipo === 'add' ? 'Adding...' : 'Removing...');
+            status.style.color = '';
+            fetch('api/admin.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': currentToken },
+                body: JSON.stringify({ action: 'wallet_adjust', amount: amount, tipo: tipo })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    document.getElementById('walletAdjustAmount').value = '';
+                    status.textContent = '✓ Balance updated: $' + formatNumber(d.saldo);
+                    status.style.color = 'var(--success)';
+                    document.getElementById('walletBalanceConfig').textContent = '$' + formatNumber(d.saldo);
+                } else {
+                    status.textContent = '✗ ' + (d.error || 'Error');
+                    status.style.color = 'var(--error)';
+                }
+                setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 4000);
+            })
+            .catch(err => {
+                status.textContent = '✗ Network error: ' + (err.message || 'unknown');
+                status.style.color = 'var(--error)';
+                setTimeout(() => { status.textContent = ''; status.style.color = ''; }, 3000);
+            });
         }
 
         // Show token detail modal (admin only)
@@ -2798,7 +2961,6 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                 const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
                 const profitLabel = profit >= 0 ? '+' : '';
 
-                // Fetch social links for this token
                 fetch('api/tokens.php?action=token_info&chain_id=' + encodeURIComponent(d.chain_id) + '&token_address=' + encodeURIComponent(d.token_address), {
                     headers: { 'Authorization': currentToken }
                 })
@@ -2809,58 +2971,85 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                     const website = links.find(l => l.label === 'Website' || l.type === 'website');
                     const telegram = links.find(l => l.type === 'telegram');
                     let linksHtml = '';
-                    const twitterCreated = infoData.twitter_created_at || null;
-                    if (twitter || website || telegram || twitterCreated) {
-                        linksHtml = '<div class="detail-section"><div class="detail-section-title">Links</div>';
-                        if (twitter) linksHtml += `<div class="detail-row"><span class="detail-label">Twitter</span><span class="detail-value"><a href="${twitter.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${twitter.url.substring(0, 30)}...</a></span></div>`;
-                        if (twitterCreated) linksHtml += `<div class="detail-row"><span class="detail-label">Twitter Created</span><span class="detail-value">${formatDate(twitterCreated)}</span></div>`;
-                        if (telegram) linksHtml += `<div class="detail-row"><span class="detail-label">Telegram</span><span class="detail-value"><a href="${telegram.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${telegram.url.substring(0, 30)}...</a></span></div>`;
-                        if (website) linksHtml += `<div class="detail-row"><span class="detail-label">Website</span><span class="detail-value"><a href="${website.url}" target="_blank" style="color:var(--accent-primary);font-size:11px;">${website.url.substring(0, 30)}...</a></span></div>`;
-                        linksHtml += '</div>';
+                    if (twitter || website || telegram) {
+                        const btns = [];
+                        if (twitter) btns.push(`<a href="${twitter.url}" target="_blank" class="btn-dex" style="text-decoration:none;font-size:10px;padding:3px 8px;">Twitter</a>`);
+                        if (telegram) btns.push(`<a href="${telegram.url}" target="_blank" class="btn-dex" style="text-decoration:none;font-size:10px;padding:3px 8px;">Telegram</a>`);
+                        if (website) btns.push(`<a href="${website.url}" target="_blank" class="btn-dex" style="text-decoration:none;font-size:10px;padding:3px 8px;">Website</a>`);
+                        btns.push(`<a href="https://dexscreener.com/${d.chain_id}/${d.token_address}" target="_blank" class="btn-dex" style="text-decoration:none;font-size:10px;padding:3px 8px;">DexSc</a>`);
+                        linksHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">' + btns.join('') + '</div>';
                     }
+
+                    const returnAmount = d.monto_invertido ? (parseFloat(d.monto_invertido) + parseFloat(d.profit_dolares || 0)).toFixed(2) : null;
 
                     Swal.fire({
                         title: (d.nombre || d.simbolo || 'Token') + ' <span style="font-size:0.7rem;opacity:0.6">' + (d.chain_id || '') + '</span>',
                         html: `
                             <div class="detail-modal">
-                                <div class="detail-section">
-                                    <div class="detail-section-title">Discovery</div>
-                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${extra?.creado_en ? formatDate(extra.creado_en) : 'N/A'}</span></div>
-                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">${d.precio_descubrimiento ? '$' + parseFloat(d.precio_descubrimiento).toFixed(8) : 'N/A'}</span></div>
-                                </div>
-                                <div class="detail-section">
-                                    <div class="detail-section-title">Entry</div>
-                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_entrada ? formatDate(d.fecha_entrada) : 'N/A'}</span></div>
-                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_entrada ? parseFloat(d.precio_entrada).toFixed(8) : 'N/A'}</span></div>
-                                </div>
-                                <div class="detail-section">
-                                    <div class="detail-section-title">Peak</div>
-                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${extra?.precio_maximo ? parseFloat(extra.precio_maximo).toFixed(8) : 'N/A'}</span></div>
-                                </div>
-                                <div class="detail-section">
-                                    <div class="detail-section-title">Exit</div>
-                                    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.fecha_salida ? formatDate(d.fecha_salida) : 'N/A'}</span></div>
-                                    <div class="detail-row"><span class="detail-label">Price</span><span class="detail-value">$${d.precio_salida ? parseFloat(d.precio_salida).toFixed(8) : 'N/A'}</span></div>
-                                </div>
                                 ${linksHtml}
-                                    <div class="detail-section">
-                                        <div class="detail-section-title">Summary</div>
-                                        <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
-                                        ${d.monto_invertido ? `<div class="detail-row"><span class="detail-label">Entry Amount</span><span class="detail-value">$${parseFloat(d.monto_invertido).toFixed(2)}</span></div>` : ''}
-                                        ${d.monto_invertido ? `<div class="detail-row"><span class="detail-label">Return Amount</span><span class="detail-value" class="${profitClass}">$${(parseFloat(d.monto_invertido) + parseFloat(d.profit_dolares || 0)).toFixed(2)}</span></div>` : ''}
-                                    <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
-                                    <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
-                                    ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}
-                                    ${d.es_reentry ? `<div class="detail-row"><span class="detail-label">Re-entry</span><span class="detail-value">Yes</span></div>` : ''}
+
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Summary</div>
+                                    <div class="detail-summary-grid">
+                                        <div><span class="detail-label">Profit</span><br><span class="detail-value ${profitClass}" style="font-size:15px;">${profitLabel}${profit.toFixed(2)}%</span></div>
+                                        <div><span class="detail-label">Return</span><br><span class="detail-value ${profitClass}">${returnAmount ? '$' + returnAmount : 'N/A'}</span></div>
+                                        <div><span class="detail-label">Duration</span><br><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
+                                        <div><span class="detail-label">Reason</span><br><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
+                                        ${d.tag ? `<div><span class="detail-label">Tag</span><br><span class="detail-value">${d.tag}</span></div>` : ''}
+                                    </div>
+                                </div>
+
+                                <div class="detail-section">
+                                    <div class="detail-section-title">Prices</div>
+                                    <div class="detail-prices-grid">
+                                        <div class="price-cell">
+                                            <div class="price-label">Discovery</div>
+                                            <div class="price-time">${extra?.creado_en ? formatDate(extra.creado_en) : '—'}</div>
+                                            <div class="price-value">${d.precio_descubrimiento ? '$' + parseFloat(d.precio_descubrimiento).toFixed(8) : 'N/A'}</div>
+                                        </div>
+                                        <div class="price-cell" style="border-color:rgba(59,130,246,0.3)">
+                                            <div class="price-label" style="color:#3b82f6">Entry</div>
+                                            <div class="price-time">${d.fecha_entrada ? formatDate(d.fecha_entrada) : '—'}</div>
+                                            <div class="price-value">$${d.precio_entrada ? parseFloat(d.precio_entrada).toFixed(8) : 'N/A'}</div>
+                                        </div>
+                                        <div class="price-cell" style="border-color:rgba(34,197,94,0.3)">
+                                            <div class="price-label" style="color:#22c55e">Peak</div>
+                                            <div class="price-time">${extra?.precio_maximo ? '—' : '—'}</div>
+                                            <div class="price-value">${extra?.precio_maximo ? '$' + parseFloat(extra.precio_maximo).toFixed(8) : 'N/A'}</div>
+                                        </div>
+                                        <div class="price-cell" style="border-color:${profit >= 0 ? 'rgba(234,179,8,0.3)' : 'rgba(239,68,68,0.3)'}">
+                                            <div class="price-label" style="color:${profit >= 0 ? '#eab308' : '#ef4444'}">Exit</div>
+                                            <div class="price-time">${d.fecha_salida ? formatDate(d.fecha_salida) : '—'}</div>
+                                            <div class="price-value">$${d.precio_salida ? parseFloat(d.precio_salida).toFixed(8) : 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="detail-section" style="border-bottom:none;">
+                                    <div class="detail-section-title">Chart</div>
+                                    <div class="detail-chart-container">
+<canvas id="priceChart_${historialId}" style="width:100%;height:100%;"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="detail-export-buttons">
+                                    <button onclick="downloadLog('${d.token_address}', 'txt')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 TXT</button>
+                                    <button onclick="downloadLog('${d.token_address}', 'csv')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 CSV</button>
+                                    <button onclick="downloadLog('${d.token_address}', 'json')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 JSON</button>
                                 </div>
                             </div>
                         `,
-                        width: 480,
+                        width: 560,
                         padding: '24px',
                         background: 'var(--bg-primary)',
                         showCloseButton: true,
                         showConfirmButton: false,
-                        customClass: { popup: 'swal-detail' }
+                        customClass: { popup: 'swal-detail' },
+                        didOpen: () => {
+                            requestAnimationFrame(() => {
+                                renderPriceChart(historialId, d.pair_address, d.precio_entrada, extra?.precio_maximo, d.precio_salida, profit);
+                            });
+                        }
                     });
                 })
                 .catch(() => {
@@ -2871,10 +3060,22 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                             <div class="detail-row"><span class="detail-label">Profit</span><span class="detail-value ${profitClass}">${profitLabel}${profit.toFixed(2)}%</span></div>
                             <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.duracion_minutos || 0} min</span></div>
                             <div class="detail-row"><span class="detail-label">Reason</span><span class="detail-value">${getRazonSalida(d.razon_salida)}</span></div>
-                            ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}</div></div>`,
-                        width: 480, padding: '24px', background: 'var(--bg-primary)',
+                            ${d.tag ? `<div class="detail-row"><span class="detail-label">Tag</span><span class="detail-value">${d.tag}</span></div>` : ''}</div>
+                            <div class="detail-section" style="border-bottom:none;"><div class="detail-section-title">Chart</div>
+                            <div class="detail-chart-container"><canvas id="priceChart_${historialId}" style="width:100%;height:100%;"></canvas></div></div>
+                            <div class="detail-export-buttons">
+                                <button onclick="downloadLog('${d.token_address}', 'txt')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 TXT</button>
+                                <button onclick="downloadLog('${d.token_address}', 'csv')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 CSV</button>
+                                <button onclick="downloadLog('${d.token_address}', 'json')" class="btn-dex" style="padding:5px 12px;font-size:10px;">📥 JSON</button>
+                            </div></div>`,
+                        width: 560, padding: '24px', background: 'var(--bg-primary)',
                         showCloseButton: true, showConfirmButton: false,
-                        customClass: { popup: 'swal-detail' }
+                        customClass: { popup: 'swal-detail' },
+                        didOpen: () => {
+                            requestAnimationFrame(() => {
+                                renderPriceChart(historialId, d.pair_address, d.precio_entrada, extra?.precio_maximo, d.precio_salida, profit);
+                            });
+                        }
                     });
                 });
             })
@@ -2889,6 +3090,18 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             // Show/hide manual coin section (Pro and Admin)
             const manualCoinSection = document.getElementById('manualCoinSection');
             if (manualCoinSection) manualCoinSection.style.display = (isProCd || isAdminCd) ? 'block' : 'none';
+
+            // Wallet balance in Config
+            fetch('api/tokens.php?action=wallet', {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.wallet) {
+                    const el = document.getElementById('walletBalanceConfig');
+                    if (el) el.textContent = '$' + formatNumber(data.wallet.saldo);
+                }
+            });
             
             // Show/hide admin-only sections
             const addBtn = document.getElementById('addUserBtn');
@@ -3004,8 +3217,8 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
                         <td data-label="Reason">${t.razon || 'N/A'}</td>
                         <td data-label="Date">${t.banneado_en}</td>
                         <td data-label="Actions">
-                            <button class="btn-copy" onclick="navigator.clipboard.writeText('${t.pair_address}')" style="padding:4px 8px;font-size:11px;margin-right:4px;" title="Copy Pair Address">Copy</button>
-                            <button class="btn-dex" onclick="window.open('https://dexscreener.com/solana/${t.pair_address}','_blank')" style="padding:4px 8px;font-size:11px;margin-right:4px;" title="Open in DexScreener">DexSc</button>
+                            <button class="btn-copy" onclick="copyToClipboard('${t.pair_address}', this)" style="padding:4px 8px;font-size:11px;margin-right:4px;" title="Copy Pair Address">Copy</button>
+                            <button class="btn-dex" onclick="window.open('https://dexscreener.com/solana/${t.pair_address}','_blank')" style="margin-right:4px;" title="Open in DexScreener">DexSc</button>
                             <button class="btn-delete" onclick="deleteBannedToken(${t.id})" style="padding:5px 12px;font-size:11px;">Unban</button>
                         </td>
                     </tr>
@@ -3097,7 +3310,7 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
         function formatDate(dateStr) {
             if (!dateStr) return '-';
             const d = new Date(dateStr);
-            return d.toLocaleString('es-ES', {
+            return d.toLocaleString('en-US', {
                 day: '2-digit',
                 month: '2-digit',
                 hour: '2-digit',
@@ -3129,6 +3342,160 @@ $nivel = isset($_SESSION['nivel']) ? $_SESSION['nivel'] : null;
             const map = { 'tp': 'TP', 'sl': 'SL', 'save_tp': 'Save TP', 'caida_pico': 'Drop', 'timeout': 'Timeout', 'expirado': 'Expired', 'ban': 'Banned', 'manual': 'Manual' };
             return map[r] || r;
         }
+
+        function formatDecimal(v) {
+            if (!v || isNaN(v)) return '0';
+            v = parseFloat(v);
+            if (v >= 1) return v.toFixed(4);
+            if (v >= 0.001) return v.toFixed(6);
+            return v.toFixed(8);
+        }
+
+        function renderPriceChart(id, pairAddress, entryPrice, peakPrice, exitPrice, profit) {
+            const canvas = document.getElementById('priceChart_' + id);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (canvas.width < 10 || canvas.height < 10) {
+                canvas.width = canvas.parentElement.clientWidth || 500;
+                canvas.height = canvas.parentElement.clientHeight || 200;
+            }
+
+            fetch('api/tokens.php?action=price_history&pair_address=' + encodeURIComponent(pairAddress), {
+                headers: { 'Authorization': currentToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.entries || data.entries.length < 2) {
+                    canvas.style.display = 'none';
+                    const msg = document.createElement('div');
+                    msg.style.cssText = 'color:#6b7294;font-size:12px;font-family:JetBrains Mono,monospace;text-align:center;padding:80px 0;';
+                    msg.textContent = 'No price history available';
+                    canvas.parentElement.appendChild(msg);
+                    return;
+                }
+
+                const entries = data.entries;
+                const labels = entries.map(e => {
+                    const p = (e.revisado_en || '').split(' ');
+                    return p.length > 1 ? p[1] : (e.revisado_en || '');
+                });
+                const prices = entries.map(e => parseFloat(e.precio || 0));
+                const n = prices.length;
+                const baseNulls = new Array(n).fill(null);
+
+                const computedPeak = Math.max(...prices);
+                const actualPeak = (peakPrice && parseFloat(peakPrice) > 0) ? parseFloat(peakPrice) : computedPeak;
+
+                const datasets = [{
+                    label: 'Price',
+                    data: prices,
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.08)',
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHitRadius: 5,
+                    fill: true,
+                    tension: 0.1
+                }];
+
+                function addRefLine(label, value, color, dash) {
+                    const d = [...baseNulls];
+                    d[0] = value;
+                    d[n - 1] = value;
+                    datasets.push({
+                        label: label,
+                        data: d,
+                        borderColor: color,
+                        borderDash: dash || [6, 3],
+                        pointRadius: 0,
+                        spanGaps: true,
+                        fill: false,
+                        borderWidth: label === 'Lowest' ? 1 : 1.5
+                    });
+                }
+
+                if (entryPrice && parseFloat(entryPrice) > 0) addRefLine('Entry', parseFloat(entryPrice), '#3b82f6');
+                if (actualPeak > 0) addRefLine('Peak', actualPeak, '#22c55e');
+                if (exitPrice && parseFloat(exitPrice) > 0) {
+                    const exitColor = profit >= 0 ? '#eab308' : '#ef4444';
+                    addRefLine('Exit', parseFloat(exitPrice), exitColor);
+                }
+
+                const lowestPrice = Math.min(...prices);
+                if (entryPrice && parseFloat(entryPrice) > 0 && lowestPrice < parseFloat(entryPrice)) {
+                    addRefLine('Lowest', lowestPrice, '#7c2d12', [4, 4]);
+                }
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: '#6b7294', font: { size: 9, family: 'JetBrains Mono' }, boxWidth: 10, padding: 6 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': $' + formatDecimal(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#6b7294', maxTicksLimit: 8, font: { size: 8, family: 'JetBrains Mono' } },
+                                grid: { color: 'rgba(255,255,255,0.04)' }
+                            },
+                            y: {
+                                ticks: {
+                                    color: '#6b7294', font: { size: 8, family: 'JetBrains Mono' },
+                                    callback: function(v) { return '$' + formatDecimal(v); }
+                                },
+                                grid: { color: 'rgba(255,255,255,0.04)' }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(() => {
+                ctx.fillStyle = '#6b7294';
+                ctx.font = '12px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error loading chart data', canvas.width / 2, 100);
+            });
+        }
+
+        window.downloadLog = function(tokenAddress, format) {
+            const map = { txt: 'download', csv: 'download_csv', json: 'download_json' };
+            const url = 'api/logs.php?action=' + (map[format] || 'download') + '&token_address=' + encodeURIComponent(tokenAddress);
+
+            fetch(url, { headers: { 'Authorization': currentToken } })
+            .then(r => {
+                if (!r.ok) {
+                    return r.text().then(txt => {
+                        try { const err = JSON.parse(txt); throw new Error(err.error || 'Download failed'); }
+                        catch (e) { throw new Error('Download failed (HTTP ' + r.status + ')'); }
+                    });
+                }
+                return r.blob();
+            })
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = tokenAddress + '.' + format;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            })
+            .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Download error', text: err.message || 'Unknown error' });
+            });
+        };
 
         window.copyToClipboard = (text, btn) => {
             const ta = document.createElement('textarea');

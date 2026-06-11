@@ -81,6 +81,12 @@ function procesarManualCoins($pdo) {
             echo "[" . date('Y-m-d H:i:s') . "] Removed existing token for re-study: " . $manual['token_address'] . "\n";
         }
 
+        // Clear all restrictions for manual entry (bypass bans, cooldowns, traded_addresses)
+        $pdo->prepare("DELETE FROM token_cooldowns WHERE pair_address = ?")->execute([$pairAddress]);
+        $pdo->prepare("DELETE FROM traded_addresses WHERE pair_address = ?")->execute([$pairAddress]);
+        $pdo->prepare("DELETE FROM tokens_banned WHERE pair_address = ?")->execute([$pairAddress]);
+        echo "[" . date('Y-m-d H:i:s') . "] Manual coin bypassing restrictions: " . $manual['token_address'] . "\n";
+
         $confianza = calcularConfianza($pdo, $nombre, $manual['token_address'], 'solana', $marketCap, $liquidez);
         $saldo = getWalletSaldo($pdo);
         $entryCost = calcularEntryCost($saldo, $confianza);
@@ -88,12 +94,12 @@ function procesarManualCoins($pdo) {
         try {
             $sql = "INSERT INTO tokens (
                 chain_id, token_address, pair_address,
-                nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_crash, precio_maximo,
+                nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_maximo,
                 last_check_price, market_cap, liquidez, cambio_1h, cambio_6h, cambio_24h,
-                estado, meta_tp, tp_alcanzado, sl_alcanzado, es_reentry,
-                reentry_count, checks_count, laps, timeout_count, fecha_registro, fecha_ingreso,
+                estado, meta_tp, tp_alcanzado, sl_alcanzado,
+                checks_count, laps, timeout_count, fecha_registro, fecha_ingreso,
                 primer_check, ultimo_check, creado_en, actualizado_en
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'monitoreando', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW(), NOW())";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'monitoreando', ?, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW(), NOW())";
             $params = [
                 'solana', $manual['token_address'], $pairAddress,
                 $nombre, $simbolo, $precioActual, $precioActual, $precioActual,
@@ -170,7 +176,16 @@ function enterToken($pdo, $token, $pairData, $precioActual, $cambio, $razon) {
     }
 }
 
+function countExitsByReason($pdo, $pairAddress, $reasons) {
+    $placeholders = implode(',', array_fill(0, count($reasons), '?'));
+    $stmt = $pdo->prepare("SELECT COUNT(*) as cnt FROM historial_tokens WHERE pair_address = ? AND razon_salida IN ($placeholders) AND DATE(fecha_salida) = CURDATE()");
+    $stmt->execute(array_merge([$pairAddress], $reasons));
+    return (int)$stmt->fetch()['cnt'];
+}
+
 function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $reentryMin, $crashPorcentaje) {
+    $deleted = $pdo->exec("DELETE t FROM tokens t LEFT JOIN token_cooldowns tc ON tc.pair_address = t.pair_address AND tc.cooldown_until > NOW() LEFT JOIN traded_addresses ta ON ta.pair_address = t.pair_address WHERE t.estado = 'nuevo' AND t.fecha_ingreso IS NULL AND (tc.id IS NOT NULL OR ta.id IS NOT NULL)");
+    if ($deleted > 0) echo "[" . date('Y-m-d H:i:s') . "] [CLEANUP] Removed {$deleted} blocked token(s)\n";
     $stmtNuevos = $pdo->query("SELECT * FROM tokens WHERE estado = 'nuevo'");
     $tokensNuevos = $stmtNuevos->fetchAll();
     
@@ -186,85 +201,70 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
         $precioActual = (float)($pairData['priceUsd'] ?? 0);
         if ($precioActual <= 0) continue;
         
-        $precioEntrada = (float)$token['precio_entrada'];
-        $cambio = (($precioActual / $precioEntrada) - 1) * 100;
-        
         if ($token['fecha_ingreso']) continue;
-        
-        if (shouldBanName($pdo, $token['nombre'])) {
-            try {
-                banearToken($pdo, $token['token_address'], $token['pair_address'], $token['chain_id'], 'Nombre baneado: 2x CAUTION', $token['nombre']);
-                registrarCoinRevisada(
-                    $pdo, $token['pair_address'], $token['chain_id'],
-                    $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
-                    $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
-                    $pairData['priceChange']['h24'] ?? 0,
-                    'ban', 'Nombre baneado (2x CAUTION)'
-                );
-                $pdo->exec("DELETE FROM tokens WHERE id = " . $token['id']);
-            } catch (Exception $e) {
-                echo "[" . date('Y-m-d H:i:s') . "] ERROR BAN NOMBRE: " . $e->getMessage() . "\n";
-            }
-            echo "[" . date('Y-m-d H:i:s') . "] NOMBRE BANEADO: " . $token['nombre'] . " (2x CAUTION)\n";
-            continue;
-        }
-        
-        $passed15 = (bool)$token['passed_15'];
-        $precioAlerta = (float)$token['precio_15_peak'];
 
-        // Fast path: +3% enter immediately
-        if ($cambio >= 3) {
-            enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entrada inmediata +' . round($cambio, 2) . '%');
+        // Daily re-entry limits check
+        $slExits = countExitsByReason($pdo, $token['pair_address'], ['sl']);
+        $tpExits = countExitsByReason($pdo, $token['pair_address'], ['tp', 'save_tp']);
+        if ($slExits >= 2 || $tpExits >= 4) {
+            echo "[" . date('Y-m-d H:i:s') . "] [LIMIT] " . $token['nombre'] . " daily limit hit (SL:{$slExits}/2, TP:{$tpExits}/4), dropping\n";
+            $pdo->prepare("DELETE FROM tokens WHERE id = ?")->execute([$token['id']]);
             continue;
         }
 
-        // First time reaching +1.5%: enter WAITING state
-        if ($cambio >= 1.5 && !$passed15) {
-            $pdo->prepare("UPDATE tokens SET passed_15 = 1, precio_15_peak = ? WHERE id = ?")
-                ->execute([$precioActual, $token['id']]);
-            echo "[" . date('Y-m-d H:i:s') . "] [WAIT] " . $token['nombre'] . " (+" . round($cambio, 2) . "%, possible entry, waiting for confirmation)\n";
+        // Check minimum requirements (MC & liquidity)
+        $mcActual = (float)($pairData['marketCap'] ?? 0);
+        $liqActual = (float)($pairData['liquidity']['usd'] ?? 0);
+        if ($mcActual < 200000 || $liqActual < 30000) {
+            $razon = $mcActual < 200000 ? 'MC' : 'Liquidity';
+            echo "[" . date('Y-m-d H:i:s') . "] [MC-LOW] " . $token['nombre'] . " {$razon} dropped below minimum, dropping\n";
+            $pdo->prepare("DELETE FROM tokens WHERE id = ?")->execute([$token['id']]);
             continue;
         }
 
-        // Confirmation: price went UP from the 1.5% point
-        if ($passed15 && $precioActual > $precioAlerta) {
-            enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'confirmed entry +' . round($cambio, 2) . '%');
-            continue;
+        // Entry via +5.1% from lowest discovery price
+        $precioDesc = (float)$token['precio_descubrimiento'];
+        if ($precioActual < $precioDesc) {
+            $precioDesc = $precioActual;
+            $pdo->prepare("UPDATE tokens SET precio_descubrimiento = ? WHERE id = ?")
+                ->execute([$precioDesc, $token['id']]);
         }
+        $cambio = (($precioActual / $precioDesc) - 1) * 100;
 
-        // Reset if dropped below 1.5%
-        if ($passed15 && $cambio < 1.5) {
-            $pdo->prepare("UPDATE tokens SET passed_15 = 0, precio_15_peak = 0 WHERE id = ?")
-                ->execute([$token['id']]);
-            echo "[" . date('Y-m-d H:i:s') . "] [RESET] " . $token['nombre'] . " (dropped to " . round($cambio, 2) . "%, resetting)\n";
+        if ($cambio >= 5.1) {
+            enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entry +' . round($cambio, 2) . '%');
             continue;
         }
 
         // Still waiting: update current price
         $pdo->prepare("UPDATE tokens SET precio_actual = ?, last_check_price = ? WHERE id = ?")
             ->execute([$precioActual, $precioActual, $token['id']]);
+    }
+}
 
-        $tiempoVivo = $token['primer_check'] ? (time() - strtotime($token['primer_check'])) / 60 : 0;
-        if ($tiempoVivo > 60) {
-            try {
-                updateTagCounts($pdo, $token['nombre'], '[I]NESTABLE');
-                banearToken($pdo, $token['token_address'], $token['pair_address'], $token['chain_id'], 'INESTABLE: Sin actividad', $token['nombre']);
-                registrarCoinRevisada(
-                    $pdo, $token['pair_address'], $token['chain_id'],
-                    $token['nombre'], $precioActual,
-                    $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0,
-                    $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
-                    $pairData['priceChange']['h24'] ?? 0,
-                    'timeout', 'Sin actividad'
-                );
-                $pdo->exec("DELETE FROM tokens WHERE id = " . $token['id']);
-            } catch (Exception $e) {
-                echo "[" . date('Y-m-d H:i:s') . "] ERROR TIMEOUT: " . $e->getMessage() . "\n";
-            }
-            echo "[" . date('Y-m-d H:i:s') . "] [INESTABLE] " . $token['nombre'] . " (Sin actividad)\n";
-            continue;
-        }
+function reentryAfterExit($pdo, $oldToken) {
+    $stmt = $pdo->prepare("SELECT * FROM tokens WHERE id = ?");
+    $stmt->execute([$oldToken['id']]);
+    $token = $stmt->fetch();
+    if (!$token || $token['estado'] !== 'nuevo') return;
+
+    $tokenData = obtenerDatosToken($token['chain_id'], $token['token_address']);
+    if (!$tokenData || !isset($tokenData[0])) return;
+    $pairData = $tokenData[0];
+    $precioActual = (float)($pairData['priceUsd'] ?? 0);
+    if ($precioActual <= 0) return;
+
+    $precioDesc = (float)$token['precio_descubrimiento'];
+    if ($precioActual < $precioDesc) {
+        $precioDesc = $precioActual;
+        $pdo->prepare("UPDATE tokens SET precio_descubrimiento = ? WHERE id = ?")
+            ->execute([$precioDesc, $token['id']]);
+    }
+    $cambio = (($precioActual / $precioDesc) - 1) * 100;
+
+    if ($cambio >= 5.1) {
+        enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'quick re-entry +' . round($cambio, 2) . '%');
+        echo "[" . date('Y-m-d H:i:s') . "] [RE-ENTRY] " . $token['nombre'] . " (immediate re-entry at +" . round($cambio, 2) . "%)\n";
     }
 }
 
@@ -275,6 +275,8 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
     if (count($tokens) > 0) {
         echo "[" . date('Y-m-d H:i:s') . "] Monitoring " . count($tokens) . " tokens...\n";
     }
+
+    static $lastWrittenPrice = [];
 
     foreach ($tokens as $token) {
         $tokenData = obtenerDatosToken($token['chain_id'], $token['token_address']);
@@ -289,23 +291,22 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
         $precioActual = (float)($pairData['priceUsd'] ?? 0);
         if ($precioActual <= 0) continue;
 
-        $precioEntrada = (float)$token['precio_entrada'];
-        $precioCrash = $token['precio_crash'] ? (float)$token['precio_crash'] : null;
-        $esReentry = (bool)$token['es_reentry'];
-        $metaTP = $esReentry ? $tpReentry : $tpPorcentaje;
-        $cambio = (($precioActual / $precioEntrada) - 1) * 100;
-
-        if ($precioCrash) {
-            $cambioCrash = (($precioActual / $precioCrash) - 1) * 100;
-            if ($cambioCrash >= $reentryMin) {
-                if ($token['reentry_count'] < 2) {
-                    $nuevoReentry = $token['reentry_count'] + 1;
-                    $pdo->prepare("UPDATE tokens SET es_reentry = 1, reentry_count = ?, meta_tp = ?, precio_crash = NULL WHERE id = ?")
-                        ->execute([$nuevoReentry, $tpReentry, $token['id']]);
-                    echo "[" . date('Y-m-d H:i:s') . "] RE-ENTRY: " . $token['nombre'] . " (Count: $nuevoReentry)\n";
-                }
-            }
+        $pumpResult = detectarPump($pdo, $token['pair_address'], 10, 5);
+        if ($pumpResult && $pumpResult['is_pump']) {
+            $pumpType = $pumpResult['is_pump_and_dump'] ? 'PumpDump' : 'Pump';
+            echo "[" . date('Y-m-d H:i:s') . "] [$pumpType] " . $token['nombre'] . " (+" . $pumpResult['change_pct'] . "% in 5min)\n";
+            registrarCoinRevisada(
+                $pdo, $token['pair_address'], $token['chain_id'],
+                $token['nombre'], $precioActual,
+                $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0,
+                $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0,
+                $pairData['priceChange']['h24'] ?? 0,
+                'pump_detected', $pumpType . ': +' . $pumpResult['change_pct'] . '% in 5min'
+            );
         }
+
+        $precioEntrada = (float)$token['precio_entrada'];
+        $cambio = (($precioActual / $precioEntrada) - 1) * 100;
 
         if ($precioEntrada > 0) {
             $precioMaximo = (float)$token['precio_maximo'];
@@ -318,59 +319,67 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
             $cambioDesdePeak = $precioMaximo > 0 ? (($precioActual / $precioMaximo) - 1) * 100 : 0;
             $cambioDesdeEntrada = $cambio;
             $minutosDesdeEntrada = $token['fecha_ingreso'] ? (time() - strtotime($token['fecha_ingreso'])) / 60 : 999;
-            $tpRapido = $minutosDesdeEntrada < 5;
-            $extraTP = getExtraTP($pdo, $token['nombre']);
-            $tpBase = 18 + $extraTP;
-            $tpFinal = $tpRapido ? min(80, $tpBase * 2) : min(80, $tpBase);
 
-            if ($cambioDesdeEntrada >= $tpFinal) {
+            // 1. Quick exit: +15% in < 3 minutes → TP + immediate re-entry
+            if ($minutosDesdeEntrada < 3 && $cambioDesdeEntrada >= 15) {
+                try {
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Quick TP: +' . round($cambioDesdeEntrada, 2) . '% in ' . round($minutosDesdeEntrada, 1) . 'min');
+                    marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
+                } catch (Exception $e) {
+                    echo "[" . date('Y-m-d H:i:s') . "] ERROR QUICK TP: " . $e->getMessage() . "\n";
+                }
+                echo "[" . date('Y-m-d H:i:s') . "] [QUICK TP] " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "% in " . round($minutosDesdeEntrada, 1) . "min)\n";
+                reentryAfterExit($pdo, $token);
+                continue;
+            }
+
+            // 2. TP: +25%
+            if ($cambioDesdeEntrada >= 25) {
                 try {
                     registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Take Profit: +' . round($cambioDesdeEntrada, 2) . '%');
                     marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
                 } catch (Exception $e) {
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR TP: " . $e->getMessage() . "\n";
                 }
-                echo "[" . date('Y-m-d H:i:s') . "] TP " . $tpFinal . "%: " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "%)" . ($extraTP > 0 ? " (+" . $extraTP . "% extra)" : "") . "\n";
+                echo "[" . date('Y-m-d H:i:s') . "] [TP 25%] " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "%)\n";
                 continue;
             }
 
-            $slDesdePeak = getSLForToken($pdo, $token['nombre'], $cambioDesdeEntrada);
-            if ($precioMaximo > 0 && $precioActual < $precioMaximo && $cambioDesdePeak <= $slDesdePeak) {
-                $razonSalida = ($cambio > 0) ? 'save_tp' : 'sl';
+            // 3. Hard SL: -5% from entry
+            if ($cambioDesdeEntrada <= -5) {
                 try {
-                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $razonSalida, 'Save TP / Stop Loss');
-                    marcarExit($pdo, $token['id'], $precioActual, $razonSalida, $cambio);
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'sl', 'Stop Loss: ' . round($cambioDesdeEntrada, 2) . '%');
+                    marcarExit($pdo, $token['id'], $precioActual, 'sl', $cambio);
                 } catch (Exception $e) {
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR SL: " . $e->getMessage() . "\n";
                 }
-                echo "[" . date('Y-m-d H:i:s') . "] [SL] " . $token['nombre'] . " (drop " . round($cambioDesdePeak, 2) . "% from peak, SL: " . $slDesdePeak . "%)\n";
+                echo "[" . date('Y-m-d H:i:s') . "] [SL -5%] " . $token['nombre'] . " (" . round($cambioDesdeEntrada, 2) . "%)\n";
                 continue;
             }
-        }
 
-        if ($cambio <= -9) {
-            try {
-                updateTagCounts($pdo, $token['nombre'], '[I]NESTABLE');
-                banearToken($pdo, $token['token_address'], $token['pair_address'], $token['chain_id'], 'Inestable', $token['nombre']);
-                registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'sl', '-9% desde entrada');
-                marcarExit($pdo, $token['id'], $precioActual, 'inestable', $cambio);
-            } catch (Exception $e) {
-                echo "[" . date('Y-m-d H:i:s') . "] ERROR -9%: " . $e->getMessage() . "\n";
+            // 4. Save TP: -5% from peak (only if overall profit > 0)
+            if ($precioMaximo > 0 && $precioActual < $precioMaximo && $cambioDesdePeak <= -5 && $cambio > 0) {
+                try {
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'save_tp', 'Save TP: -' . round(abs($cambioDesdePeak), 2) . '% from peak');
+                    marcarExit($pdo, $token['id'], $precioActual, 'save_tp', $cambio);
+                } catch (Exception $e) {
+                    echo "[" . date('Y-m-d H:i:s') . "] ERROR SAVE TP: " . $e->getMessage() . "\n";
+                }
+                echo "[" . date('Y-m-d H:i:s') . "] [SAVE TP] " . $token['nombre'] . " (-" . round(abs($cambioDesdePeak), 2) . "% from peak)\n";
+                continue;
             }
-            echo "[" . date('Y-m-d H:i:s') . "] [INESTABLE] " . $token['nombre'] . " (" . round($cambio, 2) . "% desde entrada)\n";
-            continue;
-        }
 
-        $tiempoMinutos = (time() - strtotime($token['primer_check'])) / 60;
-        if ($tiempoMinutos > 60) {
-            try {
-                registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'exit', 'Limite de 60 minutos de monitoreo alcanzado');
-                marcarExit($pdo, $token['id'], $precioActual, 'expirado', round($cambio, 2));
-            } catch (Exception $e) {
-                echo "[" . date('Y-m-d H:i:s') . "] ERROR EXPIRADO: " . $e->getMessage() . "\n";
+            // 5. Time-based: > 15 min → exit if in profit; else wait for SL
+            if ($minutosDesdeEntrada > 15 && $cambio > 0) {
+                try {
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidez']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Time exit: +' . round($cambio, 2) . '% after ' . round($minutosDesdeEntrada, 1) . 'min');
+                    marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
+                } catch (Exception $e) {
+                    echo "[" . date('Y-m-d H:i:s') . "] ERROR TIME EXIT: " . $e->getMessage() . "\n";
+                }
+                echo "[" . date('Y-m-d H:i:s') . "] [TIME EXIT] " . $token['nombre'] . " (" . round($minutosDesdeEntrada, 1) . "min, +" . round($cambio, 2) . "%)\n";
+                continue;
             }
-            echo "[" . date('Y-m-d H:i:s') . "] EXPIRADO: " . $token['nombre'] . " (" . $tiempoMinutos . " min, profit: " . round($cambio, 2) . "%)\n";
-            continue;
         }
 
         try {
@@ -393,11 +402,23 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
 
             $coinslogDir = __DIR__ . '/coinslog';
             if (!is_dir($coinslogDir)) @mkdir($coinslogDir, 0777, true);
-            $safeName = preg_replace('/[^A-Za-z0-9_]/', '', strtoupper($token['nombre']));
-            if (!$safeName) $safeName = 'UNKNOWN';
-            $logFile = $coinslogDir . '/' . $safeName . '_' . $token['token_address'] . '.log';
-            $logLine = "[" . date('Y-m-d H:i:s') . "] PRECIO=" . $precioActual . " MARKETCAP=" . ($pairData['marketCap'] ?? 0) . " LIQUIDEZ=" . ($pairData['liquidez']['usd'] ?? 0) . " CAMBIO_1H=" . ($pairData['priceChange']['h1'] ?? 0) . " CAMBIO_6H=" . ($pairData['priceChange']['h6'] ?? 0) . " CAMBIO_24H=" . ($pairData['priceChange']['h24'] ?? 0) . "\n";
-            @file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+            $logFile = $coinslogDir . '/' . $token['token_address'] . '.txt';
+            $lastPrice = $lastWrittenPrice[$token['token_address']] ?? null;
+            if ($lastPrice === null && file_exists($logFile)) {
+                $handle = @fopen($logFile, 'r');
+                if ($handle) {
+                    fseek($handle, -200, SEEK_END);
+                    $last = '';
+                    while (!feof($handle)) { $last = fgets($handle); }
+                    fclose($handle);
+                    if (preg_match('/\[Price=([^\]]+)\]/', $last, $m)) $lastPrice = $m[1];
+                }
+            }
+            if ($lastPrice === null || $lastPrice != $precioActual) {
+                $lastWrittenPrice[$token['token_address']] = $precioActual;
+                $logLine = "[" . date('m/d/Y H:i:s') . "][Price=" . $precioActual . "][MarketCap=" . ($pairData['marketCap'] ?? 0) . "][Liquidity=" . ($pairData['liquidity']['usd'] ?? 0) . "]\n";
+                @file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+            }
         } catch (Exception $e) {
             echo "[" . date('Y-m-d H:i:s') . "] ERROR ACTUALIZAR: " . $e->getMessage() . "\n";
         }
@@ -410,6 +431,33 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
 
     $fechaIngreso = $token['fecha_ingreso'] ?? null;
     if (!$fechaIngreso) {
+        if ($razon === 'inestable') {
+            $tag = '[I]NESTABLE';
+            updateTagCounts($pdo, $token['nombre'], $tag);
+            $cambioDesc = $token['precio_descubrimiento'] > 0 ? (($precioSalida / $token['precio_descubrimiento']) - 1) * 100 : $profit;
+            $duracionMin = $token['primer_check'] ? round((time() - strtotime($token['primer_check'])) / 60) : 60;
+            try {
+                $pdo->prepare("INSERT INTO historial_tokens (
+                    id_token_original, chain_id, token_address, pair_address,
+                    nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
+                    profit_porcentaje, duracion_minutos, razon_salida, tag,
+                    fecha_entrada, fecha_salida, monto_invertido, profit_dolares
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NULL, NULL)")
+                    ->execute([
+                        $tokenId, $token['chain_id'], $token['token_address'], $token['pair_address'],
+                        $token['nombre'], $token['simbolo'], $token['precio_entrada'] ?? 0,
+                        $token['precio_descubrimiento'] ?? 0, $precioSalida,
+                        round($cambioDesc, 2), $duracionMin, 'inestable', $tag
+                    ]);
+                $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares) VALUES (?, DATE_ADD(NOW(), INTERVAL 24 HOUR), 0) ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(NOW(), INTERVAL 24 HOUR), profit_dolares = 0")
+                    ->execute([$token['pair_address']]);
+                $pdo->prepare("INSERT IGNORE INTO traded_addresses (pair_address, token_address, chain_id, nombre, razon_salida) VALUES (?, ?, ?, ?, 'inestable')")
+                    ->execute([$token['pair_address'], $token['token_address'], $token['chain_id'], $token['nombre']]);
+                echo "[" . date('Y-m-d H:i:s') . "] [INESTABLE] " . $token['nombre'] . " recorded (historial + cooldown + traded)\n";
+            } catch (Exception $e) {
+                echo "[" . date('Y-m-d H:i:s') . "] ERROR INESTABLE: " . $e->getMessage() . "\n";
+            }
+        }
         $pdo->exec("DELETE FROM tokens WHERE id = $tokenId");
         echo "[" . date('Y-m-d H:i:s') . "] Eliminado: " . $token['nombre'] . " (nunca entro, razon: $razon)\n";
         return;
@@ -417,10 +465,9 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
 
     $tag = null;
     switch ($razon) {
-        case 'tp': $tag = '[S]TRONG'; break;
-        case 'save_tp': $tag = '[OK]OKAY'; break;
+        case 'tp': case 'save_tp': $tag = '[OK]OKAY'; break;
+        case 'inestable': $tag = '[I]NESTABLE'; break;
         case 'sl': $tag = '[?]CHECKING'; break;
-        case 'ban': case 'inestable': $tag = '[I]NESTABLE'; break;
         case 'expirado': default: $tag = ($profit > 0) ? '[OK]OKAY' : '[?]CHECKING'; break;
     }
 
@@ -430,7 +477,7 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
     $stmtDur = $pdo->query("SELECT TIMESTAMPDIFF(MINUTE, '$fechaIngreso', NOW()) as minutos");
     $duracionMinutos = $stmtDur->fetch()['minutos'] ?? 0;
 
-    $pdo->prepare("UPDATE tokens SET fecha_salida = NOW(), estado = 'exit', tag = ? WHERE id = ?")->execute([$tag, $tokenId]);
+    $pdo->prepare("UPDATE tokens SET fecha_salida = NOW(), estado = 'nuevo', tag = ?, fecha_ingreso = NULL, precio_entrada = ?, precio_maximo = 0, passed_15 = 0, precio_15_peak = 0, checks_count = 0, primer_check = NOW() WHERE id = ?")->execute([$tag, $precioSalida, $tokenId]);
     $stmtFecha = $pdo->query("SELECT fecha_salida FROM tokens WHERE id = $tokenId");
     $fechaSalidaDb = $stmtFecha->fetch()['fecha_salida'];
 
@@ -451,9 +498,9 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
             id_token_original, chain_id, token_address, pair_address,
             nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
             profit_porcentaje, duracion_minutos, razon_salida, tag,
-            es_reentry, fecha_entrada, fecha_salida,
+            fecha_entrada, fecha_salida,
             monto_invertido, profit_dolares
-        ) VALUES (:id, :chain, :token_addr, :pair_addr, :nombre, :simbolo, :entrada, :descubrimiento, :salida, :profit, :duracion, :razon, :tag, :es_reentry, :fecha_entrada, :fecha_salida, :monto_inv, :profit_dol)
+        ) VALUES (:id, :chain, :token_addr, :pair_addr, :nombre, :simbolo, :entrada, :descubrimiento, :salida, :profit, :duracion, :razon, :tag, :fecha_entrada, :fecha_salida, :monto_inv, :profit_dol)
     ")->execute([
         ':id' => $tokenId, ':chain' => $token['chain_id'],
         ':token_addr' => $token['token_address'], ':pair_addr' => $token['pair_address'],
@@ -462,7 +509,6 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         ':descubrimiento' => $token['precio_descubrimiento'] ?? $token['precio_entrada'],
         ':salida' => $precioSalida, ':profit' => $profit,
         ':duracion' => $duracionMinutos, ':razon' => $razon, ':tag' => $tag,
-        ':es_reentry' => $token['es_reentry'],
         ':fecha_entrada' => $token['fecha_ingreso'] ?? $token['fecha_registro'],
         ':fecha_salida' => $fechaSalidaDb,
         ':monto_inv' => $montoInvertido ?: null,
@@ -481,18 +527,26 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         }
     }
 
-    if ($razon === 'tp' || $razon === 'save_tp') {
+    // Daily limits: 2 Checking or 5 Okay -> block pair_address for rest of day
+    $checkingHoy = getCheckingCountHoy($pdo, $token['pair_address']);
+    $okayHoy = getOkayCountHoy($pdo, $token['nombre']);
+    if ($checkingHoy >= 2 || $okayHoy >= 5) {
         try {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM historial_tokens WHERE pair_address = ? AND DATE(fecha_salida) = CURDATE() AND razon_salida IN ('tp', 'save_tp')");
-            $stmt->execute([$token['pair_address']]);
-            $dailyCount = (int)$stmt->fetchColumn();
-            if ($dailyCount >= 3) {
-                $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares) VALUES (?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 0) ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(CURDATE(), INTERVAL 1 DAY), profit_dolares = 0")
-                    ->execute([$token['pair_address']]);
-                echo "[" . date('Y-m-d H:i:s') . "] DAILY LIMIT: " . $token['nombre'] . " hit 3 TP/Save TP today, blocked until tomorrow\n";
-            }
+            $pdo->prepare("INSERT INTO token_cooldowns (pair_address, cooldown_until, profit_dolares) VALUES (?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 0) ON DUPLICATE KEY UPDATE cooldown_until = DATE_ADD(CURDATE(), INTERVAL 1 DAY), profit_dolares = 0")
+                ->execute([$token['pair_address']]);
+            echo "[" . date('Y-m-d H:i:s') . "] DAILY LIMIT: " . $token['nombre'] . " hit {$checkingHoy}Ch/{$okayHoy}Ok, blocked until tomorrow\n";
         } catch (Exception $e) {
             echo "[" . date('Y-m-d H:i:s') . "] DAILY LIMIT ERROR: " . $e->getMessage() . "\n";
+        }
+    }
+
+    // Record non-TP exits in traded_addresses to prevent re-entry
+    if ($razon !== 'tp') {
+        try {
+            $pdo->prepare("INSERT IGNORE INTO traded_addresses (pair_address, token_address, chain_id, nombre, razon_salida) VALUES (?, ?, ?, ?, ?)")
+                ->execute([$token['pair_address'], $token['token_address'], $token['chain_id'], $token['nombre'], $razon]);
+        } catch (Exception $e) {
+            echo "[" . date('Y-m-d H:i:s') . "] TRADED ADDRESS ERROR: " . $e->getMessage() . "\n";
         }
     }
 }
@@ -544,47 +598,100 @@ function updateTagCounts($pdo, $nombre, $tag) {
     $stmt->execute([$nombreNorm]);
     $existing = $stmt->fetch();
 
-    $strong = $existing['strong_count'] ?? 0;
     $checking = $existing['checking_count'] ?? 0;
     $okay = $existing['okay_count'] ?? 0;
     $inestable = $existing['inestable_count'] ?? 0;
 
     switch ($tag) {
-        case '[S]TRONG': $strong++; break;
         case '[?]CHECKING': $checking++; break;
-        case '[OK]OKAY':
-            $okay++;
-            if ($okay >= 2) { $okay -= 2; $strong++; }
-            break;
+        case '[OK]OKAY': $okay++; break;
         case '[I]NESTABLE': $inestable++; break;
     }
 
     if ($existing) {
-        $pdo->prepare("UPDATE coins_tags SET strong_count = ?, checking_count = ?, okay_count = ?, inestable_count = ?, ultimo_tag = ? WHERE nombre_normalizado = ?")
-            ->execute([$strong, $checking, $okay, $inestable, $tag, $nombreNorm]);
+        $pdo->prepare("UPDATE coins_tags SET checking_count = ?, okay_count = ?, inestable_count = ?, ultimo_tag = ? WHERE nombre_normalizado = ?")
+            ->execute([$checking, $okay, $inestable, $tag, $nombreNorm]);
     } else {
-        $pdo->prepare("INSERT INTO coins_tags (nombre_normalizado, strong_count, checking_count, okay_count, inestable_count, ultimo_tag) VALUES (?, ?, ?, ?, ?, ?)")
-            ->execute([$nombreNorm, $strong, $checking, $okay, $inestable, $tag]);
+        $pdo->prepare("INSERT INTO coins_tags (nombre_normalizado, checking_count, okay_count, inestable_count, ultimo_tag) VALUES (?, ?, ?, ?, ?)")
+            ->execute([$nombreNorm, $checking, $okay, $inestable, $tag]);
     }
-    return ['strong' => $strong, 'checking' => $checking, 'okay' => $okay, 'inestable' => $inestable];
+    return ['checking' => $checking, 'okay' => $okay, 'inestable' => $inestable];
 }
 
-function getSLForToken($pdo, $nombre, $cambioDesdeEntrada) {
-    if ($cambioDesdeEntrada >= 12) return -3;
-    return -6;
+
+
+function calcularVolatilidad($pdo, $pairAddress, $minutesWindow = 60) {
+    $stmt = $pdo->prepare("SELECT precio, revisado_en FROM coins_revisadas WHERE pair_address = ? AND revisado_en >= DATE_SUB(NOW(), INTERVAL ? MINUTE) ORDER BY revisado_en ASC");
+    $stmt->execute([$pairAddress, $minutesWindow]);
+    $rows = $stmt->fetchAll();
+    if (count($rows) < 2) return null;
+
+    $returns = [];
+    for ($i = 1; $i < count($rows); $i++) {
+        $prev = (float)$rows[$i - 1]['precio'];
+        $curr = (float)$rows[$i]['precio'];
+        if ($prev > 0) $returns[] = (($curr - $prev) / $prev) * 100;
+    }
+    if (empty($returns)) return null;
+
+    $mean = array_sum($returns) / count($returns);
+    $variance = 0;
+    foreach ($returns as $r) $variance += ($r - $mean) ** 2;
+    $variance /= count($returns);
+
+    return [
+        'volatility' => round(sqrt($variance), 4),
+        'avg_change' => round($mean, 4),
+        'max_swing' => round(max($returns), 4),
+        'min_swing' => round(min($returns), 4),
+        'data_points' => count($returns)
+    ];
 }
 
-function shouldBanName($pdo, $nombre) {
-    $counts = getTagCounts($pdo, $nombre);
-    if (!$counts) return false;
-    return ($counts['checking_count'] ?? 0) >= 2 || ($counts['inestable_count'] ?? 0) > 0;
+function detectarPump($pdo, $pairAddress, $thresholdPct = 10, $windowMinutes = 5) {
+    $stmt = $pdo->prepare("SELECT precio, revisado_en FROM coins_revisadas WHERE pair_address = ? AND revisado_en >= DATE_SUB(NOW(), INTERVAL ? MINUTE) ORDER BY revisado_en ASC");
+    $stmt->execute([$pairAddress, $windowMinutes]);
+    $rows = $stmt->fetchAll();
+    if (count($rows) < 2) return null;
+
+    $earliest = (float)$rows[0]['precio'];
+    $latest = (float)$rows[count($rows) - 1]['precio'];
+    if ($earliest <= 0) return null;
+
+    $changePct = (($latest - $earliest) / $earliest) * 100;
+
+    $peak = $earliest;
+    $maxDrawdown = 0;
+    foreach ($rows as $row) {
+        $p = (float)$row['precio'];
+        if ($p > $peak) $peak = $p;
+        $dd = $peak > 0 ? (($p - $peak) / $peak) * 100 : 0;
+        if ($dd < $maxDrawdown) $maxDrawdown = $dd;
+    }
+
+    return [
+        'is_pump' => $changePct >= $thresholdPct,
+        'change_pct' => round($changePct, 2),
+        'is_pump_and_dump' => ($changePct >= $thresholdPct && $maxDrawdown < -($thresholdPct * 0.5)),
+        'drawdown_from_peak' => round($maxDrawdown, 2),
+        'data_points' => count($rows)
+    ];
 }
 
 function getExtraTP($pdo, $nombre) {
-    $counts = getTagCounts($pdo, $nombre);
-    if (!$counts) return 0;
-    $extra = (($counts['okay_count'] ?? 0) * 3) + (($counts['strong_count'] ?? 0) * 6);
-    return min($extra, 62);
+    return 0;
+}
+
+function getCheckingCountHoy($pdo, $pairAddress) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM historial_tokens WHERE pair_address = ? AND DATE(fecha_salida) = CURDATE() AND tag = '[?]CHECKING'");
+    $stmt->execute([$pairAddress]);
+    return (int)$stmt->fetchColumn();
+}
+
+function getOkayCountHoy($pdo, $nombre) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM historial_tokens WHERE nombre = ? AND DATE(fecha_salida) = CURDATE() AND tag = '[OK]OKAY'");
+    $stmt->execute([$nombre]);
+    return (int)$stmt->fetchColumn();
 }
 
 function getWalletSaldo($pdo) {
@@ -611,7 +718,6 @@ function calcularConfianza($pdo, $nombre, $tokenAddress, $chainId, $marketCap, $
     if ($counts) {
         $tagPts -= ($counts['checking_count'] ?? 0) * 5;
         $tagPts += ($counts['okay_count'] ?? 0) * 5;
-        $tagPts += ($counts['strong_count'] ?? 0) * 10;
     }
     $tagPts = max(0, min(35, $tagPts));
     $score += $tagPts;
@@ -665,8 +771,8 @@ function getTwitterAgeScore($tokenAddress, $chainId) {
 }
 
 function calcularEntryCost($saldo, $confianza) {
-    $minPct = 0.05;
-    $maxPct = 0.10;
+    $minPct = 0.08;
+    $maxPct = 0.16;
     $pct = $minPct + ($confianza / 100) * ($maxPct - $minPct);
     return round($saldo * $pct, 2);
 }

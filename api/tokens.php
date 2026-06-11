@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once __DIR__ . '/../servidor/shared.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -68,9 +69,22 @@ if ($method === 'GET') {
                 $coinsTagsMap[$ct['nombre_normalizado']] = $ct;
             }
             
+            foreach ($tokens as &$t) {
+                $vol = calcularVolatilidad($pdo, $t['pair_address'], 60);
+                $pump = detectarPump($pdo, $t['pair_address'], 10, 5);
+                $t['volatility_1h'] = $vol ? $vol['volatility'] : null;
+                $t['is_pump'] = $pump ? $pump['is_pump'] : false;
+                $t['pump_change'] = $pump ? $pump['change_pct'] : null;
+            }
+            unset($t);
+            
+            $pumpAlertsStmt = $pdo->query("SELECT COUNT(*) as count FROM coins_revisadas WHERE accion = 'pump_detected' AND revisado_en >= DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+            $activePumps = (int)$pumpAlertsStmt->fetch()['count'];
+            
             echo json_encode([
                 'success' => true,
                 'tokens' => $tokens,
+                'active_pumps' => $activePumps,
                 'historial' => $historial,
                 'wallet' => [
                     'saldo' => $walletSaldo,
@@ -237,6 +251,15 @@ if ($method === 'GET') {
             if ($stmtToken->rowCount() > 0) {
                 $tokenExtra = $stmtToken->fetch();
             }
+            if (!$tokenExtra || !($tokenExtra['precio_maximo'] ?? 0)) {
+                $stmtMax = $pdo->prepare("SELECT MAX(precio) as precio_maximo FROM coins_revisadas WHERE pair_address = ?");
+                $stmtMax->execute([$historial['pair_address']]);
+                $maxData = $stmtMax->fetch();
+                if (!$tokenExtra) $tokenExtra = [];
+                if ($maxData && ($maxData['precio_maximo'] ?? 0)) {
+                    $tokenExtra['precio_maximo'] = $maxData['precio_maximo'];
+                }
+            }
             echo json_encode([
                 'success' => true,
                 'detail' => $historial,
@@ -351,18 +374,40 @@ if ($method === 'GET') {
             ]);
             break;
 
+        case 'price_history':
+            $pairAddress = $_GET['pair_address'] ?? '';
+            if (!$pairAddress) {
+                echo json_encode(['success' => false, 'error' => 'Falta pair_address']);
+                break;
+            }
+            $stmt = $pdo->prepare("SELECT precio, market_cap, revisado_en, accion FROM coins_revisadas WHERE pair_address = ? ORDER BY revisado_en ASC LIMIT 500");
+            $stmt->execute([$pairAddress]);
+            $rows = $stmt->fetchAll();
+            echo json_encode(['success' => true, 'entries' => $rows]);
+            break;
+
+        case 'volatility':
+            $pairAddress = $_GET['pair_address'] ?? '';
+            $window = (int)($_GET['window'] ?? 60);
+            if (!$pairAddress) {
+                echo json_encode(['success' => false, 'error' => 'Falta pair_address']);
+                break;
+            }
+            $vol = calcularVolatilidad($pdo, $pairAddress, $window);
+            $pump = detectarPump($pdo, $pairAddress, 10, 5);
+            echo json_encode(['success' => true, 'volatility' => $vol, 'pump' => $pump]);
+            break;
+
+        case 'pump_alerts':
+            $stmt = $pdo->query("SELECT pair_address, nombre, precio, revisado_en, razon FROM coins_revisadas WHERE accion = 'pump_detected' AND revisado_en >= DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY revisado_en DESC LIMIT 50");
+            echo json_encode(['success' => true, 'alerts' => $stmt->fetchAll()]);
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Acción no válida']);
     }
     exit;
-}
-
-function obtenerDatosToken($chainId, $tokenAddress) {
-    $url = "https://api.dexscreener.com/tokens/v1/$chainId/$tokenAddress";
-    $response = @file_get_contents($url);
-    if (!$response) return null;
-    return json_decode($response, true);
 }
 
 http_response_code(405);

@@ -93,9 +93,9 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             $marketCap = floatval($pairData['marketCap'] ?? 0);
             $liquidez = floatval($pairData['liquidity']['usd'] ?? 0);
 
-            if ($marketCap < 300000) continue;
+            if ($marketCap < 200000) continue;
 
-            $liquidezMinima = max(50000, $marketCap * 0.015);
+            $liquidezMinima = 30000;
             if ($liquidez < $liquidezMinima) continue;
 
             $pairCreatedAt = $pairData['pairCreatedAt'] ?? 0;
@@ -141,12 +141,12 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             try {
                 $sql = "INSERT INTO tokens (
                     chain_id, token_address, pair_address,
-                    nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_crash, precio_maximo,
+                    nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_maximo,
                     last_check_price, market_cap, liquidez, cambio_1h, cambio_6h, cambio_24h,
-                    estado, meta_tp, tp_alcanzado, sl_alcanzado, es_reentry,
-                    reentry_count, checks_count, laps, timeout_count, fecha_registro,
+                    estado, meta_tp, tp_alcanzado, sl_alcanzado,
+                    checks_count, laps, timeout_count, fecha_registro,
                     primer_check, ultimo_check, creado_en, actualizado_en
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
                 $params = [
                     $token['chain_id'], $token['token_address'], $token['pair_address'],
                     $token['nombre'], $token['simbolo'], $token['precio'], $token['precio'], $token['precio'],

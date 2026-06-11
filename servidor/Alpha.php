@@ -35,9 +35,10 @@ while (true) {
             $logPath = __DIR__ . '\buscador.log';
             pclose(popen("start /B \"\" \"$phpCmd\" \"$scriptPath\" > \"$logPath\" 2>&1", "r"));
 
-            echo "[" . date('Y-m-d H:i:s') . "] 2. Processing manual coins...\n";
-            procesarManualCoins($pdo);
         }
+
+        echo "[" . date('Y-m-d H:i:s') . "] 2. Processing manual coins...\n";
+        procesarManualCoins($pdo);
 
         echo "[" . date('Y-m-d H:i:s') . "] 3. Checking new tokens for entry...\n";
         procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $reentryMin, $crashPorcentaje);
@@ -146,14 +147,22 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             $stmt->execute([$pair]);
             if ($stmt->fetch()) continue;
 
+            // Skip previously traded (non-TP exit) -- no re-entry
+            $stmtTraded = $pdo->prepare("SELECT id, razon_salida FROM traded_addresses WHERE pair_address = ?");
+            $stmtTraded->execute([$pair]);
+            if ($traded = $stmtTraded->fetch()) {
+                if ($traded['razon_salida'] !== 'tp') continue;
+                echo "[" . date('Y-m-d H:i:s') . "]     -> TP re-entry eligible: " . ($pairData['baseToken']['name'] ?? $pairData['baseToken']['symbol'] ?? $tokenAddress) . "\n";
+            }
+
             if ($chainId !== 'solana') continue;
 
             $marketCap = floatval($pairData['marketCap'] ?? 0);
             $liquidez = floatval($pairData['liquidity']['usd'] ?? 0);
 
-            if ($marketCap < 300000) continue;
+            if ($marketCap < 200000) continue;
 
-            $liquidezMinima = max(50000, $marketCap * 0.015);
+            $liquidezMinima = 30000;
             if ($liquidez < $liquidezMinima) continue;
 
             $pairCreatedAt = $pairData['pairCreatedAt'] ?? 0;
@@ -199,12 +208,12 @@ function buscarNuevosTokens($pdo, $tpPorcentaje) {
             try {
                 $sql = "INSERT INTO tokens (
                     chain_id, token_address, pair_address,
-                    nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_crash, precio_maximo,
+                    nombre, simbolo, precio_actual, precio_entrada, precio_descubrimiento, precio_maximo,
                     last_check_price, market_cap, liquidez, cambio_1h, cambio_6h, cambio_24h,
-                    estado, meta_tp, tp_alcanzado, sl_alcanzado, es_reentry,
-                    reentry_count, checks_count, laps, timeout_count, fecha_registro,
+                    estado, meta_tp, tp_alcanzado, sl_alcanzado,
+                    checks_count, laps, timeout_count, fecha_registro,
                     primer_check, ultimo_check, creado_en, actualizado_en
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'nuevo', ?, 0, 0, 0, 0, 0, NOW(), NOW(), NOW(), NOW(), NOW())";
                 $params = [
                     $token['chain_id'], $token['token_address'], $token['pair_address'],
                     $token['nombre'], $token['simbolo'], $token['precio'], $token['precio'], $token['precio'],

@@ -302,7 +302,7 @@ if ($method === 'POST') {
             $stmt->execute([$tokenAddress]);
             echo json_encode([
                 'success' => true,
-                'message' => 'Coin agregada a la cola. El servidor la procesará en breve.',
+                'message' => 'Coin agregada y en procesamiento.',
                 'id' => $pdo->lastInsertId()
             ]);
             break;
@@ -389,6 +389,27 @@ if ($method === 'POST') {
             echo json_encode(['success' => true, 'message' => 'Token exited manually']);
             break;
 
+        case 'wallet_adjust':
+            $amount = floatval($input['amount'] ?? 0);
+            $tipo = $input['tipo'] ?? 'add';
+            if ($amount <= 0) {
+                echo json_encode(['error' => 'Amount must be > 0']);
+                break;
+            }
+            $saldo = getWalletSaldo($pdo);
+            if ($tipo === 'remove') {
+                if ($amount > $saldo) {
+                    echo json_encode(['error' => 'Insufficient balance']);
+                    break;
+                }
+                updateWallet($pdo, $amount, 'salida', null, null, 0, 'Admin removed $' . $amount);
+            } else {
+                updateWallet($pdo, $amount, 'entrada', null, null, 0, 'Admin added $' . $amount);
+            }
+            $nuevoSaldo = getWalletSaldo($pdo);
+            echo json_encode(['success' => true, 'saldo' => $nuevoSaldo]);
+            break;
+
         case 'banear_token':
             if (!$isAdmin) {
                 http_response_code(403);
@@ -441,15 +462,15 @@ function manualExitToken($pdo, $token, $precioSalida, $profit) {
             id_token_original, chain_id, token_address, pair_address,
             nombre, simbolo, precio_entrada, precio_descubrimiento, precio_salida,
             profit_porcentaje, duracion_minutos, razon_salida, tag,
-            es_reentry, fecha_entrada, fecha_salida,
+            fecha_entrada, fecha_salida,
             monto_invertido, profit_dolares
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ")->execute([
         $token['id'], $token['chain_id'], $token['token_address'], $token['pair_address'],
         $token['nombre'], $token['simbolo'], $token['precio_entrada'],
         $token['precio_descubrimiento'] ?? $token['precio_entrada'], $precioSalida,
         $profit, $duracionMinutos, 'manual', null,
-        $token['es_reentry'], $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb,
+        $token['fecha_ingreso'] ?? $token['fecha_registro'], $fechaSalidaDb,
         $montoInvertido ?: null, $profitDolares ?: null
     ]);
     logSistema('info', 'Token exited manually: ' . $token['nombre'], ['id' => $token['id'], 'profit' => $profit . '%']);

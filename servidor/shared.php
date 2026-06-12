@@ -701,9 +701,14 @@ function getWalletSaldo($pdo) {
 }
 
 function updateWallet($pdo, $monto, $tipo, $tokenNombre, $tokenAddress, $confianza = 0, $detalle = '', $montoRegistrado = null) {
-    $saldoActual = getWalletSaldo($pdo);
-    $nuevoSaldo = $tipo === 'salida' ? max(0, $saldoActual - $monto) : $saldoActual + $monto;
-    $pdo->prepare("UPDATE wallet SET saldo = ?, ultima_actualizacion = NOW() WHERE id = 1")->execute([$nuevoSaldo]);
+    $pdo->exec("INSERT IGNORE INTO wallet (id, saldo) VALUES (1, 1000.00)");
+    if ($tipo === 'salida') {
+        $pdo->prepare("UPDATE wallet SET saldo = GREATEST(0, saldo - ?), ultima_actualizacion = NOW() WHERE id = 1")->execute([$monto]);
+    } else {
+        $pdo->prepare("UPDATE wallet SET saldo = saldo + ?, ultima_actualizacion = NOW() WHERE id = 1")->execute([$monto]);
+    }
+    $saldoRow = $pdo->query("SELECT saldo FROM wallet WHERE id = 1")->fetch();
+    $nuevoSaldo = $saldoRow ? (float)$saldoRow['saldo'] : 1000.00;
     $montoReg = $montoRegistrado ?? $monto;
     $pdo->prepare("INSERT INTO wallet_transactions (tipo, token_nombre, token_address, monto, saldo_resultante, confianza, detalle, creado_en) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())")
         ->execute([$tipo, $tokenNombre, $tokenAddress, $montoReg, $nuevoSaldo, $confianza, $detalle]);

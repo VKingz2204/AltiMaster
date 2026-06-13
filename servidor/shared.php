@@ -87,7 +87,7 @@ function procesarManualCoins($pdo) {
         $pdo->prepare("DELETE FROM tokens_banned WHERE pair_address = ?")->execute([$pairAddress]);
         echo "[" . date('Y-m-d H:i:s') . "] Manual coin bypassing restrictions: " . $manual['token_address'] . "\n";
 
-        $confianza = calcularConfianza($pdo, $nombre, $manual['token_address'], 'solana', $marketCap, $liquidez);
+        $confianza = calcularConfianza($pdo, $nombre, $pair);
         $saldo = getWalletSaldo($pdo);
         $entryCost = calcularEntryCost($saldo, $confianza);
 
@@ -140,7 +140,7 @@ function procesarManualCoins($pdo) {
 }
 
 function enterToken($pdo, $token, $pairData, $precioActual, $cambio, $razon) {
-    $confianza = calcularConfianza($pdo, $token['nombre'], $token['token_address'], $token['chain_id'], $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0);
+    $confianza = calcularConfianza($pdo, $token['nombre'], $pairData);
     $saldo = getWalletSaldo($pdo);
     $entryCost = calcularEntryCost($saldo, $confianza);
 
@@ -722,9 +722,11 @@ function updateWallet($pdo, $monto, $tipo, $tokenNombre, $tokenAddress, $confian
     return $nuevoSaldo;
 }
 
-function calcularConfianza($pdo, $nombre, $tokenAddress, $chainId, $marketCap, $liquidez) {
+function calcularConfianza($pdo, $nombre, $pairData) {
+    $marketCap = $pairData['marketCap'] ?? 0;
+    $liquidez = $pairData['liquidity']['usd'] ?? 0;
     $score = 0;
-    $score += getTwitterAgeScore($tokenAddress, $chainId);
+    $score += getTwitterAgeScore($pairData);
     $counts = getTagCounts($pdo, $nombre);
     $tagPts = 25;
     if ($counts) {
@@ -742,11 +744,8 @@ function calcularConfianza($pdo, $nombre, $tokenAddress, $chainId, $marketCap, $
     return max(0, min(100, round($score)));
 }
 
-function getTwitterAgeScore($tokenAddress, $chainId) {
-    $tokenData = obtenerDatosToken($chainId, $tokenAddress);
-    if (!$tokenData || !isset($tokenData[0])) return 0;
-    $pair = $tokenData[0];
-    $socials = $pair['info']['socials'] ?? [];
+function getTwitterAgeScore($pairData) {
+    $socials = $pairData['info']['socials'] ?? [];
     $twitterHandle = null;
     foreach ($socials as $s) {
         if (($s['type'] ?? '') === 'twitter') {

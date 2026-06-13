@@ -109,11 +109,12 @@ function procesarManualCoins($pdo) {
             $pdo->prepare($sql)->execute($params);
             $tokenId = $pdo->lastInsertId();
 
-            // Only deduct wallet after successful INSERT
-            updateWallet($pdo, $entryCost, 'salida', $nombre, $manual['token_address'], $confianza, 'Entrada manual coin');
-
+            // Set monto_invertido BEFORE wallet debit ensures exit can credit wallet
             $pdo->prepare("UPDATE tokens SET monto_invertido = ?, confianza = ? WHERE id = ?")
                 ->execute([$entryCost, $confianza, $tokenId]);
+
+            // Only deduct wallet after monto_invertido is set
+            updateWallet($pdo, $entryCost, 'salida', $nombre, $manual['token_address'], $confianza, 'Entrada manual coin');
 
             $signalUsers = $pdo->query("SELECT id FROM api_keys")->fetchAll();
             foreach ($signalUsers as $su) {
@@ -144,9 +145,10 @@ function enterToken($pdo, $token, $pairData, $precioActual, $cambio, $razon) {
     $entryCost = calcularEntryCost($saldo, $confianza);
 
     try {
-        updateWallet($pdo, $entryCost, 'salida', $token['nombre'], $token['token_address'], $confianza, $razon);
         $pdo->prepare("UPDATE tokens SET estado = 'monitoreando', fecha_ingreso = NOW(), checks_count = 0, precio_entrada = ?, precio_actual = ?, cambio_1h = ?, cambio_6h = ?, cambio_24h = ?, last_check_price = ?, monto_invertido = ?, confianza = ? WHERE id = ?")
             ->execute([$precioActual, $precioActual, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, $precioActual, $entryCost, $confianza, $token['id']]);
+
+        updateWallet($pdo, $entryCost, 'salida', $token['nombre'], $token['token_address'], $confianza, $razon);
 
         actualizarTokenFree($pdo, $token['id']);
 
@@ -489,6 +491,8 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
         $detalleWallet = 'Exit ' . $razon . ': ' . ($profit >= 0 ? '+' : '') . $profit . '% ($' . $profitDolares . ')';
         updateWallet($pdo, $montoRetornado, 'profit', $token['nombre'], $token['token_address'], (int)($token['confianza'] ?? 0), $detalleWallet, $profitDolares);
         echo "[" . date('Y-m-d H:i:s') . "] WALLET: \$" . $montoInvertido . " -> \$" . $montoRetornado . " (" . ($profit >= 0 ? '+' : '') . $profit . "%)\n";
+    } elseif ($token['fecha_ingreso']) {
+        echo "[" . date('Y-m-d H:i:s') . "] [WARN] monto_invertido is NULL for " . $token['nombre'] . " - wallet credit skipped\n";
     }
 
     $nombreConTag = $token['nombre'];

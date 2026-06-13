@@ -27,9 +27,11 @@ $users = $stmt->fetchAll();
 
 $isAdmin = false;
 $userNivel = '';
+$currentUserId = null;
 foreach ($users as $u) {
     $expectedToken = hash('sha256', $u['id'] . $u['username'] . 'altiChecker_secret');
     if ($token === $expectedToken) {
+        $currentUserId = $u['id'];
         $userNivel = $u['nivel'];
         if ($u['nivel'] === 'admin') {
             $isAdmin = true;
@@ -213,7 +215,7 @@ if ($method === 'POST') {
                 exit;
             }
 
-            if ($input['id'] == $_SESSION['user_id']) {
+            if ($input['id'] == $currentUserId) {
                 http_response_code(400);
                 echo json_encode(['error' => 'No puedes eliminarte a ti mismo']);
                 exit;

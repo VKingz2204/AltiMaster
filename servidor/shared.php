@@ -428,7 +428,8 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
 }
 
 function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
-    $stmt = $pdo->query("SELECT * FROM tokens WHERE id = $tokenId");
+    $stmt = $pdo->prepare("SELECT * FROM tokens WHERE id = ?");
+    $stmt->execute([$tokenId]);
     $token = $stmt->fetch();
 
     $fechaIngreso = $token['fecha_ingreso'] ?? null;
@@ -460,7 +461,7 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
                 echo "[" . date('Y-m-d H:i:s') . "] ERROR INESTABLE: " . $e->getMessage() . "\n";
             }
         }
-        $pdo->exec("DELETE FROM tokens WHERE id = $tokenId");
+        $pdo->prepare("DELETE FROM tokens WHERE id = ?")->execute([$tokenId]);
         echo "[" . date('Y-m-d H:i:s') . "] Eliminado: " . $token['nombre'] . " (nunca entro, razon: $razon)\n";
         return;
     }
@@ -476,11 +477,13 @@ function marcarExit($pdo, $tokenId, $precioSalida, $razon, $profit) {
     if ($tag) updateTagCounts($pdo, $token['nombre'], $tag);
 
     $duracionMinutos = 0;
-    $stmtDur = $pdo->query("SELECT TIMESTAMPDIFF(MINUTE, '$fechaIngreso', NOW()) as minutos");
+    $stmtDur = $pdo->prepare("SELECT TIMESTAMPDIFF(MINUTE, ?, NOW()) as minutos");
+    $stmtDur->execute([$fechaIngreso]);
     $duracionMinutos = $stmtDur->fetch()['minutos'] ?? 0;
 
     $pdo->prepare("UPDATE tokens SET fecha_salida = NOW(), estado = 'nuevo', tag = ?, fecha_ingreso = NULL, precio_entrada = ?, precio_maximo = 0, passed_15 = 0, precio_15_peak = 0, checks_count = 0, primer_check = NOW() WHERE id = ?")->execute([$tag, $precioSalida, $tokenId]);
-    $stmtFecha = $pdo->query("SELECT fecha_salida FROM tokens WHERE id = $tokenId");
+    $stmtFecha = $pdo->prepare("SELECT fecha_salida FROM tokens WHERE id = ?");
+    $stmtFecha->execute([$tokenId]);
     $fechaSalidaDb = $stmtFecha->fetch()['fecha_salida'];
 
     $montoInvertido = (float)($token['monto_invertido'] ?? 0);

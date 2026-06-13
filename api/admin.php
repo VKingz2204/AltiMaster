@@ -441,12 +441,14 @@ if ($method === 'POST') {
 function manualExitToken($pdo, $token, $precioSalida, $profit) {
     $duracionMinutos = 0;
     if ($token['fecha_ingreso']) {
-        $stmt = $pdo->query("SELECT TIMESTAMPDIFF(MINUTE, '{$token['fecha_ingreso']}', NOW()) as minutos");
+        $stmt = $pdo->prepare("SELECT TIMESTAMPDIFF(MINUTE, ?, NOW()) as minutos");
+        $stmt->execute([$token['fecha_ingreso']]);
         $duracionMinutos = (int)($stmt->fetch()['minutos'] ?? 0);
     }
     $pdo->prepare("UPDATE tokens SET fecha_salida = NOW(), estado = 'exit', tag = NULL WHERE id = ?")
         ->execute([$token['id']]);
-    $stmtFecha = $pdo->query("SELECT fecha_salida FROM tokens WHERE id = {$token['id']}");
+    $stmtFecha = $pdo->prepare("SELECT fecha_salida FROM tokens WHERE id = ?");
+    $stmtFecha->execute([$token['id']]);
     $fechaSalidaDb = $stmtFecha->fetch()['fecha_salida'];
 
     $montoInvertido = (float)($token['monto_invertido'] ?? 0);

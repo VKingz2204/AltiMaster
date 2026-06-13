@@ -309,9 +309,9 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
 
         $precioEntrada = (float)$token['precio_entrada'];
         $cambio = (($precioActual / $precioEntrada) - 1) * 100;
+        $precioMaximo = (float)$token['precio_maximo'];
 
         if ($precioEntrada > 0) {
-            $precioMaximo = (float)$token['precio_maximo'];
             if ($precioActual > $precioMaximo) {
                 $precioMaximo = $precioActual;
                 $pdo->prepare("UPDATE tokens SET precio_maximo = ? WHERE id = ?")

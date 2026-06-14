@@ -233,7 +233,7 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
         }
         $cambio = (($precioActual / $precioDesc) - 1) * 100;
 
-        if ($cambio >= 5.1) {
+        if ($cambio >= $reentryMin) {
             enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entry +' . round($cambio, 2) . '%');
             continue;
         }
@@ -244,7 +244,7 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
     }
 }
 
-function reentryAfterExit($pdo, $oldToken) {
+function reentryAfterExit($pdo, $oldToken, $reentryMin) {
     $stmt = $pdo->prepare("SELECT * FROM tokens WHERE id = ?");
     $stmt->execute([$oldToken['id']]);
     $token = $stmt->fetch();
@@ -264,7 +264,7 @@ function reentryAfterExit($pdo, $oldToken) {
     }
     $cambio = (($precioActual / $precioDesc) - 1) * 100;
 
-    if ($cambio >= 5.1) {
+    if ($cambio >= $reentryMin) {
         enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'quick re-entry +' . round($cambio, 2) . '%');
         echo "[" . date('Y-m-d H:i:s') . "] [RE-ENTRY] " . $token['nombre'] . " (immediate re-entry at +" . round($cambio, 2) . "%)\n";
     }
@@ -322,8 +322,8 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
             $cambioDesdeEntrada = $cambio;
             $minutosDesdeEntrada = $token['fecha_ingreso'] ? (time() - strtotime($token['fecha_ingreso'])) / 60 : 999;
 
-            // 1. Quick exit: +15% in < 3 minutes → TP + immediate re-entry
-            if ($minutosDesdeEntrada < 3 && $cambioDesdeEntrada >= 15) {
+            // 1. Quick exit: +tpReentry% in < 3 minutes → TP + immediate re-entry
+            if ($minutosDesdeEntrada < 3 && $cambioDesdeEntrada >= $tpReentry) {
                 try {
                     registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Quick TP: +' . round($cambioDesdeEntrada, 2) . '% in ' . round($minutosDesdeEntrada, 1) . 'min');
                     marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
@@ -331,36 +331,36 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR QUICK TP: " . $e->getMessage() . "\n";
                 }
                 echo "[" . date('Y-m-d H:i:s') . "] [QUICK TP] " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "% in " . round($minutosDesdeEntrada, 1) . "min)\n";
-                reentryAfterExit($pdo, $token);
+                reentryAfterExit($pdo, $token, $reentryMin);
                 continue;
             }
 
-            // 2. TP: +25%
-            if ($cambioDesdeEntrada >= 25) {
+            // 2. TP: +tpPorcentaje%
+            if ($cambioDesdeEntrada >= $tpPorcentaje) {
                 try {
                     registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Take Profit: +' . round($cambioDesdeEntrada, 2) . '%');
                     marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
                 } catch (Exception $e) {
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR TP: " . $e->getMessage() . "\n";
                 }
-                echo "[" . date('Y-m-d H:i:s') . "] [TP 25%] " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "%)\n";
+                echo "[" . date('Y-m-d H:i:s') . "] [TP " . $tpPorcentaje . "%] " . $token['nombre'] . " (+" . round($cambioDesdeEntrada, 2) . "%)\n";
                 continue;
             }
 
-            // 3. Hard SL: -5% from entry
-            if ($cambioDesdeEntrada <= -5) {
+            // 3. Hard SL: -slPorcentaje% from entry
+            if ($cambioDesdeEntrada <= -$slPorcentaje) {
                 try {
                     registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'sl', 'Stop Loss: ' . round($cambioDesdeEntrada, 2) . '%');
                     marcarExit($pdo, $token['id'], $precioActual, 'sl', $cambio);
                 } catch (Exception $e) {
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR SL: " . $e->getMessage() . "\n";
                 }
-                echo "[" . date('Y-m-d H:i:s') . "] [SL -5%] " . $token['nombre'] . " (" . round($cambioDesdeEntrada, 2) . "%)\n";
+                echo "[" . date('Y-m-d H:i:s') . "] [SL -" . $slPorcentaje . "%] " . $token['nombre'] . " (" . round($cambioDesdeEntrada, 2) . "%)\n";
                 continue;
             }
 
-            // 4. Save TP: -5% from peak (only if overall profit > 0)
-            if ($precioMaximo > 0 && $precioActual < $precioMaximo && $cambioDesdePeak <= -5 && $cambio > 0) {
+            // 4. Save TP: -slPorcentaje% from peak (only if overall profit > 0)
+            if ($precioMaximo > 0 && $precioActual < $precioMaximo && $cambioDesdePeak <= -$slPorcentaje && $cambio > 0) {
                 try {
                     registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'save_tp', 'Save TP: -' . round(abs($cambioDesdePeak), 2) . '% from peak');
                     marcarExit($pdo, $token['id'], $precioActual, 'save_tp', $cambio);

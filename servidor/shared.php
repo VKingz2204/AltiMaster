@@ -722,7 +722,7 @@ function calcularConfianza($pdo, $nombre, $pairData) {
     $marketCap = $pairData['marketCap'] ?? 0;
     $liquidez = $pairData['liquidity']['usd'] ?? 0;
     $score = 0;
-    $score += getTwitterAgeScore($pairData);
+    $score += getSocialPresenceScore($pairData);
     $counts = getTagCounts($pdo, $nombre);
     $tagPts = 25;
     if ($counts) {
@@ -740,41 +740,31 @@ function calcularConfianza($pdo, $nombre, $pairData) {
     return max(0, min(100, round($score)));
 }
 
-function getTwitterAgeScore($pairData) {
-    $socials = $pairData['info']['socials'] ?? [];
-    $twitterHandle = null;
-    foreach ($socials as $s) {
-        if (($s['type'] ?? '') === 'twitter') {
-            $url = $s['url'] ?? '';
-            if ($url) {
-                $parts = explode('/', rtrim($url, '/'));
-                $twitterHandle = end($parts);
-            }
-            break;
-        }
-    }
-    if (!$twitterHandle) return 0;
+function getSocialPresenceScore($pairData) {
+    $score = 0;
 
-    $bearerToken = 'AAAAAAAAAAAAAAAAAAAAALeg9wEAAAAATUzuO0f2yUcKI%2BCo6LHam%2B%2BpZng%3DixkH7p1JH3knOV5mkkQFILMpS32ZCO2AQFQdDJ6msKMgo3G5Bu';
-    $url = "https://api.x.com/2/users/by/username/" . urlencode($twitterHandle) . "?user.fields=created_at";
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10,
-        CURLOPT_HTTPHEADER => ["Authorization: Bearer $bearerToken"], CURLOPT_SSL_VERIFYPEER => false
-    ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($httpCode !== 200) return 0;
-    $data = json_decode($response, true);
-    $createdAt = $data['data']['created_at'] ?? null;
-    if (!$createdAt) return 0;
-    $daysOld = (time() - strtotime($createdAt)) / 86400;
-    if ($daysOld > 365) return 50;
-    if ($daysOld > 90) return 40;
-    if ($daysOld > 30) return 30;
-    if ($daysOld > 7) return 20;
-    return 10;
+    // Pair age: how long this pool has been live and tradeable
+    $pairCreatedAt = $pairData['pairCreatedAt'] ?? 0; // Unix ms from DexScreener
+    if ($pairCreatedAt > 0) {
+        $hoursOld = (time() - ($pairCreatedAt / 1000)) / 3600;
+        if ($hoursOld > 168) $score += 30;      // >7 days
+        elseif ($hoursOld > 72)  $score += 25;  // >3 days
+        elseif ($hoursOld > 24)  $score += 15;  // >1 day
+        elseif ($hoursOld > 12)  $score += 10;  // >12 hours
+        elseif ($hoursOld > 3)   $score += 5;   // >3 hours
+        // <3 hours: 0 — too new to trust
+    }
+
+    // Social presence: channels already set up signal an established project
+    $socials = $pairData['info']['socials'] ?? [];
+    $websites = $pairData['info']['websites'] ?? [];
+    $types = array_column($socials, 'type');
+    if (in_array('twitter', $types))   $score += 10;
+    if (in_array('telegram', $types))  $score += 5;
+    if (in_array('discord', $types))   $score += 3;
+    if (count($websites) > 0)          $score += 7;
+
+    return min($score, 50); // cap at 50, same range as before
 }
 
 function calcularEntryCost($saldo, $confianza) {

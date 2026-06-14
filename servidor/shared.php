@@ -685,10 +685,6 @@ function detectarPump($pdo, $pairAddress, $thresholdPct = 10, $windowMinutes = 5
     ];
 }
 
-function getExtraTP($pdo, $nombre) {
-    return 0;
-}
-
 function getCheckingCountHoy($pdo, $pairAddress) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM historial_tokens WHERE pair_address = ? AND DATE(fecha_salida) = CURDATE() AND tag = '[?]CHECKING'");
     $stmt->execute([$pairAddress]);

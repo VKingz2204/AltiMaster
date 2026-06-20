@@ -224,7 +224,15 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
             continue;
         }
 
-        // Entry via +5.1% from lowest discovery price
+        // Volume confirmation: require real buy pressure in last 5 min
+        $buyTxns5m  = (int)($pairData['txns']['m5']['buys']  ?? 0);
+        $sellTxns5m = (int)($pairData['txns']['m5']['sells'] ?? 0);
+        if ($buyTxns5m < 2 || $buyTxns5m < $sellTxns5m) {
+            echo "[" . date('Y-m-d H:i:s') . "] [VOL-SKIP] " . $token['nombre'] . " no buy pressure (buys5m: $buyTxns5m, sells5m: $sellTxns5m)\n";
+            continue;
+        }
+
+        // Entry via reentryMin% from lowest discovery price
         $precioDesc = (float)$token['precio_descubrimiento'];
         if ($precioActual < $precioDesc) {
             $precioDesc = $precioActual;

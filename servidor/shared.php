@@ -367,17 +367,32 @@ function monitorearActivos($pdo, $monitoreoIntervalo, $tpPorcentaje, $tpReentry,
                 continue;
             }
 
-            // 4. Time-based: > 15 min → exit if in profit; else wait for SL
-            if ($minutosDesdeEntrada > 15 && $cambio > 0) {
+            // 4. Time-based exit
+            // Strong momentum (cambio >= half of TP target): extend to 30 min, let trailing SL handle it
+            // Weak/moderate profit: exit at 15 min as before
+            // Hard cap: always exit at 30 min if still in profit
+            $strongMomentum = ($cambio >= $tpPorcentaje / 2);
+            if ($minutosDesdeEntrada > 30 && $cambio > 0) {
                 try {
-                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Time exit: +' . round($cambio, 2) . '% after ' . round($minutosDesdeEntrada, 1) . 'min');
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Time cap 30m: +' . round($cambio, 2) . '%');
                     marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
                 } catch (Exception $e) {
                     echo "[" . date('Y-m-d H:i:s') . "] ERROR TIME EXIT: " . $e->getMessage() . "\n";
                 }
-                echo "[" . date('Y-m-d H:i:s') . "] [TIME EXIT] " . $token['nombre'] . " (" . round($minutosDesdeEntrada, 1) . "min, +" . round($cambio, 2) . "%)\n";
+                echo "[" . date('Y-m-d H:i:s') . "] [TIME CAP 30m] " . $token['nombre'] . " (+" . round($cambio, 2) . "% after " . round($minutosDesdeEntrada, 1) . "min)\n";
                 continue;
             }
+            if ($minutosDesdeEntrada > 15 && $cambio > 0 && !$strongMomentum) {
+                try {
+                    registrarCoinRevisada($pdo, $token['pair_address'], $token['chain_id'], $token['nombre'], $precioActual, $pairData['marketCap'] ?? 0, $pairData['liquidity']['usd'] ?? 0, $pairData['priceChange']['h1'] ?? 0, $pairData['priceChange']['h6'] ?? 0, $pairData['priceChange']['h24'] ?? 0, 'tp', 'Time exit 15m: +' . round($cambio, 2) . '%');
+                    marcarExit($pdo, $token['id'], $precioActual, 'tp', $cambio);
+                } catch (Exception $e) {
+                    echo "[" . date('Y-m-d H:i:s') . "] ERROR TIME EXIT: " . $e->getMessage() . "\n";
+                }
+                echo "[" . date('Y-m-d H:i:s') . "] [TIME EXIT 15m] " . $token['nombre'] . " (+" . round($cambio, 2) . "%, momentum not strong enough to extend)\n";
+                continue;
+            }
+            // Strong momentum at 15 min: trailing SL handles the exit, no time cap applied
         }
 
         try {

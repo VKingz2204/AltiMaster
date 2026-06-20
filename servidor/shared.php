@@ -185,11 +185,53 @@ function countExitsByReason($pdo, $pairAddress, $reasons) {
     return (int)$stmt->fetch()['cnt'];
 }
 
+// Returns true if new entries should be blocked (paused or just triggered).
+// Stores pause expiry in configuracion.drawdown_paused_until (datetime).
+// Manual revoke: DELETE FROM configuracion WHERE clave = 'drawdown_paused_until'
+function enforceDrawdownBreaker($pdo) {
+    // Check if an existing pause is still active
+    $stmt = $pdo->prepare("SELECT valor FROM configuracion WHERE clave = 'drawdown_paused_until'");
+    $stmt->execute();
+    $row = $stmt->fetch();
+    if ($row && strtotime($row['valor']) > time()) {
+        echo "[" . date('Y-m-d H:i:s') . "] [DRAWDOWN BREAKER] Trading paused until {$row['valor']} — skipping new entries\n";
+        return true;
+    }
+
+    // Evaluate today's realized losses against wallet balance
+    $walletRow = $pdo->query("SELECT saldo FROM wallet WHERE id = 1")->fetch();
+    $walletBalance = $walletRow ? (float)$walletRow['saldo'] : 0;
+    if ($walletBalance <= 0) return false; // can't evaluate, fail open
+
+    $threshold = (float)(getConfig('drawdown_max_pct') ?: 15);
+
+    $lossRow = $pdo->query("
+        SELECT COALESCE(SUM(profit_dolares), 0) AS total_loss
+        FROM historial_tokens
+        WHERE fecha_salida >= CURDATE()
+          AND profit_dolares < 0
+    ")->fetch();
+    $totalLoss    = abs((float)$lossRow['total_loss']);
+    $lossPercent  = ($totalLoss / $walletBalance) * 100;
+
+    if ($lossPercent >= $threshold) {
+        $pauseUntil = date('Y-m-d H:i:s', strtotime('+8 hours'));
+        $pdo->prepare("INSERT INTO configuracion (clave, valor) VALUES ('drawdown_paused_until', ?) ON DUPLICATE KEY UPDATE valor = ?")
+            ->execute([$pauseUntil, $pauseUntil]);
+        echo "[" . date('Y-m-d H:i:s') . "] [DRAWDOWN BREAKER] Daily loss " . round($lossPercent, 1) . "% >= {$threshold}% — trading paused until {$pauseUntil}\n";
+        return true;
+    }
+
+    return false;
+}
+
 function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $reentryMin, $crashPorcentaje) {
     $deleted = $pdo->exec("DELETE t FROM tokens t LEFT JOIN token_cooldowns tc ON tc.pair_address = t.pair_address AND tc.cooldown_until > NOW() LEFT JOIN traded_addresses ta ON ta.pair_address = t.pair_address WHERE t.estado = 'nuevo' AND t.fecha_ingreso IS NULL AND (tc.id IS NOT NULL OR ta.id IS NOT NULL)");
     if ($deleted > 0) echo "[" . date('Y-m-d H:i:s') . "] [CLEANUP] Removed {$deleted} blocked token(s)\n";
     $stmtNuevos = $pdo->query("SELECT * FROM tokens WHERE estado = 'nuevo'");
     $tokensNuevos = $stmtNuevos->fetchAll();
+
+    if (enforceDrawdownBreaker($pdo)) return;
 
     if (count($tokensNuevos) > 0) {
         echo "[" . date('Y-m-d H:i:s') . "] Waiting for entry: " . count($tokensNuevos) . " tokens...\n";

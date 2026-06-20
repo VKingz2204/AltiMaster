@@ -190,11 +190,13 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
     if ($deleted > 0) echo "[" . date('Y-m-d H:i:s') . "] [CLEANUP] Removed {$deleted} blocked token(s)\n";
     $stmtNuevos = $pdo->query("SELECT * FROM tokens WHERE estado = 'nuevo'");
     $tokensNuevos = $stmtNuevos->fetchAll();
-    
+
     if (count($tokensNuevos) > 0) {
         echo "[" . date('Y-m-d H:i:s') . "] Waiting for entry: " . count($tokensNuevos) . " tokens...\n";
     }
-    
+
+    $heliusKey = getConfig('helius_api_key'); // fetch once per cycle, not per token
+
     foreach ($tokensNuevos as $token) {
         $tokenData = obtenerDatosToken($token['chain_id'], $token['token_address']);
         if (!$tokenData || !isset($tokenData[0])) continue;
@@ -225,9 +227,11 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
         }
 
         // Volume confirmation: require real buy pressure in last 5 min
+        // Only applied when DexScreener returns m5 data — skipped if missing (fail open)
         $buyTxns5m  = (int)($pairData['txns']['m5']['buys']  ?? 0);
         $sellTxns5m = (int)($pairData['txns']['m5']['sells'] ?? 0);
-        if ($buyTxns5m < 2 || $buyTxns5m < $sellTxns5m) {
+        $hasTxnData = ($buyTxns5m + $sellTxns5m) > 0;
+        if ($hasTxnData && ($buyTxns5m < 2 || $buyTxns5m < $sellTxns5m)) {
             echo "[" . date('Y-m-d H:i:s') . "] [VOL-SKIP] " . $token['nombre'] . " no buy pressure (buys5m: $buyTxns5m, sells5m: $sellTxns5m)\n";
             continue;
         }
@@ -244,7 +248,6 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
         if ($cambio >= $reentryMin) {
             // Holder concentration check (Solana only, runs once at entry gate)
             if ($token['chain_id'] === 'solana') {
-                $heliusKey = getConfig('helius_api_key');
                 if ($heliusKey && !checkHolderConcentration($token['token_address'], $heliusKey)) {
                     echo "[" . date('Y-m-d H:i:s') . "] [WHALE-SKIP] " . $token['nombre'] . " top non-LP holders >30% supply, dropping\n";
                     $pdo->prepare("DELETE FROM tokens WHERE id = ?")->execute([$token['id']]);
@@ -808,7 +811,7 @@ function checkHolderConcentration($tokenMintAddress, $heliusKey) {
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $params]),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 8,
+            CURLOPT_TIMEOUT => 4,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_SSL_VERIFYPEER => false,
         ]);

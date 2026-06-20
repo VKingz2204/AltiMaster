@@ -242,6 +242,15 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
         $cambio = (($precioActual / $precioDesc) - 1) * 100;
 
         if ($cambio >= $reentryMin) {
+            // Holder concentration check (Solana only, runs once at entry gate)
+            if ($token['chain_id'] === 'solana') {
+                $heliusKey = getConfig('helius_api_key');
+                if ($heliusKey && !checkHolderConcentration($token['token_address'], $heliusKey)) {
+                    echo "[" . date('Y-m-d H:i:s') . "] [WHALE-SKIP] " . $token['nombre'] . " top non-LP holders >30% supply, dropping\n";
+                    $pdo->prepare("DELETE FROM tokens WHERE id = ?")->execute([$token['id']]);
+                    continue;
+                }
+            }
             enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entry +' . round($cambio, 2) . '%');
             continue;
         }
@@ -776,6 +785,48 @@ function getSocialPresenceScore($pairData) {
     if (count($websites) > 0)          $score += 7;
 
     return min($score, 50); // cap at 50, same range as before
+}
+
+function checkHolderConcentration($tokenMintAddress, $heliusKey) {
+    $rpcUrl = "https://mainnet.helius-rpc.com/?api-key=" . urlencode($heliusKey);
+
+    $callRpc = function($method, $params) use ($rpcUrl) {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $rpcUrl,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $params]),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return $res ? json_decode($res, true) : null;
+    };
+
+    $holdersData = $callRpc('getTokenLargestAccounts', [$tokenMintAddress]);
+    $supplyData  = $callRpc('getTokenSupply', [$tokenMintAddress]);
+
+    $accounts    = $holdersData['result']['value'] ?? [];
+    $totalSupply = (float)($supplyData['result']['value']['uiAmount'] ?? 0);
+
+    if (count($accounts) < 3 || $totalSupply <= 0) return true; // can't assess → fail open
+
+    // Skip the first account (largest, typically the LP pool)
+    // Sum accounts 2-6 to get non-LP whale concentration
+    $whaleAmount = 0;
+    $skip = true;
+    $counted = 0;
+    foreach ($accounts as $acc) {
+        if ($skip) { $skip = false; continue; }
+        $whaleAmount += (float)($acc['uiAmount'] ?? 0);
+        if (++$counted >= 5) break;
+    }
+
+    $concentrationPct = ($whaleAmount / $totalSupply) * 100;
+    return $concentrationPct <= 30; // true = safe to enter, false = whale concentration too high
 }
 
 function calcularEntryCost($saldo, $confianza) {

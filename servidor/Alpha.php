@@ -18,7 +18,7 @@ logSistema('info', 'Servidor de busqueda iniciado');
 
 $tpPorcentaje = (float)getConfig('tp_porcentaje') ?: 40;
 $tpReentry = (float)getConfig('tp_reentry_porcentaje') ?: 20;
-$slPorcentaje = (float)getConfig('sl_porcentaje') ?: 10;
+$slPorcentaje = (float)getConfig('sl_porcentaje') ?: 5;
 $reentryMin = (float)getConfig('reentry_subida_min') ?: 5;
 $crashPorcentaje = (float)getConfig('crash_porcentaje') ?: -4000;
 

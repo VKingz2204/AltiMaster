@@ -139,8 +139,8 @@ function procesarManualCoins($pdo) {
     }
 }
 
-function enterToken($pdo, $token, $pairData, $precioActual, $cambio, $razon) {
-    $confianza = calcularConfianza($pdo, $token['nombre'], $pairData);
+function enterToken($pdo, $token, $pairData, $precioActual, $cambio, $razon, $fechaRegistro = null) {
+    $confianza = calcularConfianza($pdo, $token['nombre'], $pairData, $fechaRegistro);
     $saldo = getWalletSaldo($pdo);
     $entryCost = calcularEntryCost($saldo, $confianza);
 
@@ -251,7 +251,7 @@ function procesarNuevosTokens($pdo, $tpPorcentaje, $tpReentry, $slPorcentaje, $r
                     continue;
                 }
             }
-            enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entry +' . round($cambio, 2) . '%');
+            enterToken($pdo, $token, $pairData, $precioActual, $cambio, 'entry +' . round($cambio, 2) . '%', $token['fecha_registro']);
             continue;
         }
 
@@ -738,11 +738,22 @@ function updateWallet($pdo, $monto, $tipo, $tokenNombre, $tokenAddress, $confian
     return $nuevoSaldo;
 }
 
-function calcularConfianza($pdo, $nombre, $pairData) {
+function calcularConfianza($pdo, $nombre, $pairData, $fechaRegistro = null) {
     $marketCap = $pairData['marketCap'] ?? 0;
     $liquidez = $pairData['liquidity']['usd'] ?? 0;
     $score = 0;
     $score += getSocialPresenceScore($pairData);
+
+    // Entry speed score: slow organic grind scores higher than a spike
+    // Not applied to manual entries or re-entries (fechaRegistro = null)
+    if ($fechaRegistro) {
+        $secsToEntry = max(0, time() - strtotime($fechaRegistro));
+        if ($secsToEntry < 45)       $score -= 10; // spike: dump pattern, penalty
+        elseif ($secsToEntry < 120)  $score += 0;  // fast move: no bonus
+        elseif ($secsToEntry < 300)  $score += 5;  // moderate: small bonus
+        elseif ($secsToEntry < 600)  $score += 10; // slow grind: good signal
+        else                         $score += 15; // very slow organic: strong signal
+    }
     $counts = getTagCounts($pdo, $nombre);
     $tagPts = 25;
     if ($counts) {
